@@ -56,6 +56,10 @@ generate:
 wire:
 	cd cmd/kratos-realworld/ && wire
 
+.PHONY: run
+# run
+run:
+	kratos run
 
 .PHONY: all
 # generate all

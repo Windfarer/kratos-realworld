@@ -1,0 +1,8 @@
+version: '3'
+services:
+  rwdb:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: dangerous
+    ports:
+      - 3306:3306
