@@ -4,5 +4,6 @@ services:
     image: mysql:8
     environment:
       MYSQL_ROOT_PASSWORD: dangerous
+      MYSQL_DATABASE: realworld # for database creation automatically
     ports:
       - 3306:3306

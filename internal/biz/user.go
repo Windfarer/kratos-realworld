@@ -46,9 +46,13 @@ func verifyPaasword(hashed, input string) bool {
 type UserRepo interface {
 	CreateUser(ctx context.Context, user *User) error
 	GetUserByEmail(ctx context.Context, email string) (*User, error)
+	GetUserByUsername(ctx context.Context, username string) (*User, error)
 }
 
 type ProfileRepo interface {
+	GetProfile(ctx context.Context, username string) (*Profile, error)
+	FollowUser(ctx context.Context, username string) (*Profile, error)
+	UnfollowUser(ctx context.Context, username string) (*Profile, error)
 }
 
 type UserUsecase struct {
@@ -57,6 +61,9 @@ type UserUsecase struct {
 	jwtc *conf.JWT
 
 	log *log.Helper
+}
+
+type Profile struct {
 }
 
 func NewUserUsecase(ur UserRepo,
@@ -100,4 +107,8 @@ func (uc *UserUsecase) Login(ctx context.Context, email, password string) (*User
 		Image:    u.Image,
 		Token:    uc.generateToken(u.Username),
 	}, nil
+}
+
+func (uc *UserUsecase) GetCurrentUser(ctx context.Context) (*User, error) {
+	return nil, nil
 }

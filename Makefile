@@ -59,6 +59,7 @@ wire:
 .PHONY: run
 # run
 run:
+	cd deploy/mysql && docker-compose up -d
 	kratos run
 
 .PHONY: all

@@ -27,6 +27,9 @@ func (r *userRepo) GetUserByEmail(ctx context.Context, email string) (*biz.User,
 	return nil, nil
 }
 
+func (r *userRepo) GetUserByUsername(ctx context.Context, username string) (*biz.User, error) {
+	return nil, nil
+}
 
 type profileRepo struct {
 	data *Data
@@ -41,3 +44,16 @@ func NewProfileRepo(data *Data, logger log.Logger) biz.ProfileRepo {
 	}
 }
 
+
+
+func (r *profileRepo) GetProfile(ctx context.Context, username string)  (*biz.Profile, error) {
+	return nil, nil
+}
+
+func (r *profileRepo) FollowUser(ctx context.Context, username string)  (*biz.Profile, error) {
+	return nil, nil
+}
+
+func (r *profileRepo) UnfollowUser(ctx context.Context, username string)  (*biz.Profile, error) {
+	return nil, nil
+}
