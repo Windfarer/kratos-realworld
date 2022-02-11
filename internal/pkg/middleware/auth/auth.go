@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 	"strings"
+	"time"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/go-kratos/kratos/v2/middleware"
@@ -16,7 +16,7 @@ import (
 func GenerateToken(secret, username string) string {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"username": username,
-		"nbf": time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
+		"nbf":      time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
 	})
 
 	// Sign and get the complete encoded token as a string using the secret
@@ -36,7 +36,7 @@ func JWTAuth(secret string) middleware.Middleware {
 				if len(auths) != 2 || !strings.EqualFold(auths[0], "Token") {
 					return nil, errors.New("jwt token missing")
 				}
-				
+
 				token, err := jwt.Parse(auths[1], func(token *jwt.Token) (interface{}, error) {
 					// Don't forget to validate the alg is what you expect:
 					if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {

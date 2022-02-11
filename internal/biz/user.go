@@ -36,7 +36,7 @@ func hashPassword(pwd string) string {
 	return string(b)
 }
 
-func verifyPaasword(hashed, input string) bool {
+func verifyPassword(hashed, input string) bool {
 	if err := bcrypt.CompareHashAndPassword([]byte(hashed), []byte(input)); err != nil {
 		return false
 	}
@@ -96,7 +96,7 @@ func (uc *UserUsecase) Login(ctx context.Context, email, password string) (*User
 	if err != nil {
 		return nil, err
 	}
-	if !verifyPaasword(u.PasswordHash, password) {
+	if !verifyPassword(u.PasswordHash, password) {
 		return nil, errors.New("login failed")
 	}
 

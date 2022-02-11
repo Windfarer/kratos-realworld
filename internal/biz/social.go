@@ -20,14 +20,11 @@ type ArticleRepo interface {
 }
 
 type CommentRepo interface {
-
 }
 
 type TagRepo interface {
 	GetTags(ctx context.Context) ([]*Tag, error)
 }
-
-
 
 type SocialUsecase struct {
 	ar ArticleRepo
@@ -58,5 +55,3 @@ func NewSocialUsecase(ar ArticleRepo,
 func (uc *SocialUsecase) CreateArticle(ctx context.Context) error {
 	return nil
 }
-
-

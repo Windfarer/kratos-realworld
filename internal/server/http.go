@@ -22,7 +22,7 @@ func NewSkipRoutersMatcher() selector.MatchFunc {
 	skipRouters := make(map[string]struct{})
 	skipRouters["/realworld.v1.RealWorld/Login"] = struct{}{}
 	skipRouters["/realworld.v1.RealWorld/Register"] = struct{}{}
-	return func(ctx context.Context, operation string) bool{
+	return func(ctx context.Context, operation string) bool {
 		if _, ok := skipRouters[operation]; ok {
 			return false
 		}
@@ -34,7 +34,7 @@ func NewSkipRoutersMatcher() selector.MatchFunc {
 func NewHTTPServer(c *conf.Server, jwtc *conf.JWT, greeter *service.RealWorldService, logger log.Logger) *http.Server {
 	var opts = []http.ServerOption{
 		http.ErrorEncoder(errorEncoder),
-		
+
 		http.Middleware(
 			recovery.Recovery(),
 			selector.Server(auth.JWTAuth(jwtc.Token)).Match(NewSkipRoutersMatcher()).Build(),

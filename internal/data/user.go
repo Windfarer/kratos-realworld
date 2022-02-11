@@ -3,8 +3,13 @@ package data
 import (
 	"context"
 	"github.com/go-kratos/kratos/v2/log"
+	"gorm.io/gorm"
 	"kratos-realworld/internal/biz"
 )
+
+type FollowUser struct {
+	gorm.Model
+}
 
 type userRepo struct {
 	data *Data
@@ -44,16 +49,14 @@ func NewProfileRepo(data *Data, logger log.Logger) biz.ProfileRepo {
 	}
 }
 
-
-
-func (r *profileRepo) GetProfile(ctx context.Context, username string)  (*biz.Profile, error) {
+func (r *profileRepo) GetProfile(ctx context.Context, username string) (*biz.Profile, error) {
 	return nil, nil
 }
 
-func (r *profileRepo) FollowUser(ctx context.Context, username string)  (*biz.Profile, error) {
+func (r *profileRepo) FollowUser(ctx context.Context, username string) (*biz.Profile, error) {
 	return nil, nil
 }
 
-func (r *profileRepo) UnfollowUser(ctx context.Context, username string)  (*biz.Profile, error) {
+func (r *profileRepo) UnfollowUser(ctx context.Context, username string) (*biz.Profile, error) {
 	return nil, nil
 }

@@ -16,7 +16,7 @@ func (s *RealWorldService) Login(ctx context.Context, req *v1.LoginRequest) (rep
 		User: &v1.UserReply_User{
 			Username: "boom",
 		},
-	},nil
+	}, nil
 }
 
 func (s *RealWorldService) Register(ctx context.Context, req *v1.RegisterRequest) (reply *v1.UserReply, err error) {
@@ -27,22 +27,18 @@ func (s *RealWorldService) Register(ctx context.Context, req *v1.RegisterRequest
 	return &v1.UserReply{
 		User: &v1.UserReply_User{
 			Username: u.Username,
-			Token: u.Token,
+			Token:    u.Token,
 		},
-	},nil
+	}, nil
 }
 
-
-
-
 func (s *RealWorldService) GetCurrentUser(ctx context.Context, req *v1.GetCurrentUserRequest) (reply *v1.UserReply, err error) {
-
 
 	return &v1.UserReply{
 		User: &v1.UserReply_User{
 			Username: "boom",
 		},
-	},nil
+	}, nil
 }
 
 func (s *RealWorldService) UpdateUser(ctx context.Context, req *v1.UpdateUserRequest) (reply *v1.UserReply, err error) {
@@ -50,5 +46,5 @@ func (s *RealWorldService) UpdateUser(ctx context.Context, req *v1.UpdateUserReq
 		User: &v1.UserReply_User{
 			Username: "boom",
 		},
-	},nil
+	}, nil
 }

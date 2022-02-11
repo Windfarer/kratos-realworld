@@ -15,7 +15,7 @@ func TestHashPassword(t *testing.T) {
 func TestVerifyPassword(t *testing.T) {
 	a := assert.New(t)
 
-	a.True(verifyPaasword("$2a$10$9glSiir1PnzNgZzM1hXXaemPWECsyoYfWKbcr62APlXDvjl4yeTaK", "abc"))
-	a.False(verifyPaasword("$2a$10$9glSiir1PnzNgZzM1hXXaemPWECsyoYfWKbcr62APlXDvjl4yeTaK", "abc1"))
-	a.False(verifyPaasword("$2a$10$ssssd", "abc"))
+	a.True(verifyPassword("$2a$10$9glSiir1PnzNgZzM1hXXaemPWECsyoYfWKbcr62APlXDvjl4yeTaK", "abc"))
+	a.False(verifyPassword("$2a$10$9glSiir1PnzNgZzM1hXXaemPWECsyoYfWKbcr62APlXDvjl4yeTaK", "abc1"))
+	a.False(verifyPassword("$2a$10$ssssd", "abc"))
 }

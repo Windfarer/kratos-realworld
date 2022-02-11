@@ -3,10 +3,7 @@ package errors
 import (
 	"errors"
 	"fmt"
-
 )
-
-
 
 func NewHTTPError(code int, field string, detail string) *HTTPError {
 	return &HTTPError{

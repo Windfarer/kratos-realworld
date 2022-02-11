@@ -8,7 +8,6 @@ import (
 	"kratos-realworld/internal/errors"
 )
 
-
 func errorEncoder(w nethttp.ResponseWriter, r *nethttp.Request, err error) {
 	se := errors.FromError(err)
 	codec, _ := http.CodecForRequest(r, "Accept")
@@ -19,5 +18,5 @@ func errorEncoder(w nethttp.ResponseWriter, r *nethttp.Request, err error) {
 	}
 	w.Header().Set("Content-Type", "application/"+codec.Name())
 	w.WriteHeader(se.Code)
-	_,_ = w.Write(body)
+	_, _ = w.Write(body)
 }

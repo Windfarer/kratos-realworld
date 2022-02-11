@@ -4,7 +4,7 @@ type ListOption func(*ListOptions)
 
 type ListOptions struct {
 	Filters map[string]string
-	Tag string
+	Tag     string
 	Offset  int64
 	Limit   int64
 }
