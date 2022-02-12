@@ -30,15 +30,6 @@ type Following struct {
 	Following uint
 }
 
-type User struct {
-	gorm.Model
-	Email        string
-	Username     string
-	Bio          string
-	Image        string
-	PasswordHash string
-}
-
 type articleRepo struct {
 	data *Data
 	log  *log.Helper

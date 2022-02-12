@@ -2,9 +2,10 @@ package data
 
 import (
 	"context"
+	"kratos-realworld/internal/biz"
+
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
-	"kratos-realworld/internal/biz"
 )
 
 type FollowUser struct {
@@ -16,6 +17,15 @@ type userRepo struct {
 	log  *log.Helper
 }
 
+type User struct {
+	gorm.Model
+	Email        string `gorm:"size:500"`
+	Username     string `gorm:"size:500"`
+	Bio          string `gorm:"size:1000"`
+	Image        string `gorm:"size:1000"`
+	PasswordHash string `gorm:"size:500"`
+}
+
 // NewGreeterRepo .
 func NewUserRepo(data *Data, logger log.Logger) biz.UserRepo {
 	return &userRepo{
@@ -25,7 +35,15 @@ func NewUserRepo(data *Data, logger log.Logger) biz.UserRepo {
 }
 
 func (r *userRepo) CreateUser(ctx context.Context, u *biz.User) error {
-	return nil
+	user := User{
+		Email:        u.Email,
+		Username:     u.Username,
+		Bio:          u.Bio,
+		Image:        u.Image,
+		PasswordHash: u.PasswordHash,
+	}
+	rv := r.data.db.Create(&user)
+	return rv.Error
 }
 
 func (r *userRepo) GetUserByEmail(ctx context.Context, email string) (*biz.User, error) {

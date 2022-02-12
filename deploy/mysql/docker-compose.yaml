@@ -7,3 +7,5 @@ services:
       MYSQL_DATABASE: realworld # for database creation automatically
     ports:
       - 3306:3306
+    volumes:
+      - "./data:/var/lib/mysql"

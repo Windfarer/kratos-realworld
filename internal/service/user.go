@@ -26,6 +26,7 @@ func (s *RealWorldService) Register(ctx context.Context, req *v1.RegisterRequest
 	}
 	return &v1.UserReply{
 		User: &v1.UserReply_User{
+			Email: u.Email,
 			Username: u.Username,
 			Token:    u.Token,
 		},

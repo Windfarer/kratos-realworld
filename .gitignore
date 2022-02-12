@@ -34,3 +34,5 @@ bin/
 .vscode/
 .idea/
 *.swp
+
+deploy/mysql/data/
