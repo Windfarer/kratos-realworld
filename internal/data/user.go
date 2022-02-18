@@ -46,12 +46,34 @@ func (r *userRepo) CreateUser(ctx context.Context, u *biz.User) error {
 	return rv.Error
 }
 
-func (r *userRepo) GetUserByEmail(ctx context.Context, email string) (*biz.User, error) {
-	return nil, nil
+func (r *userRepo) GetUserByEmail(ctx context.Context, email string) (rv *biz.User, err error) {
+	u := new(User)
+	err = r.data.db.Where("email = ?", email).First(u).Error
+	if err != nil {
+		return nil, err
+	}
+	return &biz.User{
+		Email:        u.Email,
+		Username:     u.Username,
+		Bio:          u.Bio,
+		Image:        u.Image,
+		PasswordHash: u.PasswordHash,
+	}, nil
 }
 
-func (r *userRepo) GetUserByUsername(ctx context.Context, username string) (*biz.User, error) {
-	return nil, nil
+func (r *userRepo) GetUserByUsername(ctx context.Context, username string) (rv *biz.User, err error) {
+	u := new(User)
+	err = r.data.db.Where("username = ?", username).First(u).Error
+	if err != nil {
+		return nil, err
+	}
+	return &biz.User{
+		Email:        u.Email,
+		Username:     u.Username,
+		Bio:          u.Bio,
+		Image:        u.Image,
+		PasswordHash: u.PasswordHash,
+	}, nil
 }
 
 type profileRepo struct {
@@ -67,14 +89,44 @@ func NewProfileRepo(data *Data, logger log.Logger) biz.ProfileRepo {
 	}
 }
 
-func (r *profileRepo) GetProfile(ctx context.Context, username string) (*biz.Profile, error) {
-	return nil, nil
+func (r *profileRepo) GetProfile(ctx context.Context, username string) (rv *biz.Profile, err error) {
+	u := new(User)
+	err = r.data.db.Where("username = ?", username).First(u).Error
+	if err != nil {
+		return nil, err
+	}
+	return &biz.Profile{
+		Username: u.Username,
+		Bio:      u.Bio,
+		Image:    u.Image,
+		Following: false, // fixme
+	}, nil
 }
 
-func (r *profileRepo) FollowUser(ctx context.Context, username string) (*biz.Profile, error) {
-	return nil, nil
+func (r *profileRepo) FollowUser(ctx context.Context, username string) (rv *biz.Profile, err error) {
+	u := new(User)
+	err = r.data.db.Where("username = ?", username).First(u).Error
+	if err != nil {
+		return nil, err
+	}
+	return &biz.Profile{
+		Username:  u.Username,
+		Bio:       u.Bio,
+		Image:     u.Image,
+		Following: false, // fixme
+	}, nil
 }
 
-func (r *profileRepo) UnfollowUser(ctx context.Context, username string) (*biz.Profile, error) {
-	return nil, nil
+func (r *profileRepo) UnfollowUser(ctx context.Context, username string) (rv *biz.Profile, err error) {
+	u := new(User)
+	err = r.data.db.Where("username = ?", username).First(u).Error
+	if err != nil {
+		return nil, err
+	}
+	return &biz.Profile{
+		Username:  u.Username,
+		Bio:       u.Bio,
+		Image:     u.Image,
+		Following: false, // fixme
+	}, nil
 }

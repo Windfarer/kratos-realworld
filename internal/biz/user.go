@@ -64,6 +64,10 @@ type UserUsecase struct {
 }
 
 type Profile struct {
+	Username  string
+	Bio       string
+	Image     string
+	Following bool
 }
 
 func NewUserUsecase(ur UserRepo,

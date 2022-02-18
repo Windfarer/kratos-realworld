@@ -7,11 +7,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/go-kratos/kratos/v2/transport"
 	"github.com/golang-jwt/jwt/v4"
 )
+
+var currentUserKey struct{}
+
+type CurrentUser struct {
+	Username string
+}
 
 func GenerateToken(secret, username string) string {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -50,7 +55,11 @@ func JWTAuth(secret string) middleware.Middleware {
 				}
 
 				if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-					spew.Dump(claims["username"])
+					if u, ok := claims["username"]; ok {
+						ctx = WithContext(ctx, &CurrentUser{Username: u.(string)})
+					}
+					// put CurrentUser into ctx
+
 				} else {
 					return nil, errors.New("Token Invalid")
 				}
@@ -58,4 +67,12 @@ func JWTAuth(secret string) middleware.Middleware {
 			return handler(ctx, req)
 		}
 	}
+}
+
+func FromContext(ctx context.Context) *CurrentUser {
+	return ctx.Value(currentUserKey).(*CurrentUser)
+}
+
+func WithContext(ctx context.Context, user *CurrentUser) context.Context {
+	context.WithValue(ctx, currentUserKey, user)
 }

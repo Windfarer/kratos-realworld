@@ -36,7 +36,7 @@ type articleRepo struct {
 }
 
 func (articleRepo) ListArticles(ctx context.Context, opts ...biz.ListOption) ([]*biz.Article, error) {
-	panic("implement me")
+	return nil, nil
 }
 
 func (articleRepo) FeedArticles(ctx context.Context, opts ...biz.ListOption) ([]*biz.Article, error) {
@@ -47,11 +47,11 @@ func (articleRepo) GetArticle(ctx context.Context, slug string) (*biz.Article, e
 	panic("implement me")
 }
 
-func (articleRepo) CreateArticle(ctx context.Context, a biz.Article) (*biz.Article, error) {
+func (articleRepo) CreateArticle(ctx context.Context, a *biz.Article) (*biz.Article, error) {
 	panic("implement me")
 }
 
-func (articleRepo) UpdateArticle(ctx context.Context, a biz.Article) (*biz.Article, error) {
+func (articleRepo) UpdateArticle(ctx context.Context, a *biz.Article) (*biz.Article, error) {
 	panic("implement me")
 }
 
