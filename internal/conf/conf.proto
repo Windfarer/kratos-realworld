@@ -35,5 +35,5 @@ message Data {
 }
 
 message JWT {
-  string token = 1;
+  string secret = 1;
 }

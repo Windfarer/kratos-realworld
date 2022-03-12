@@ -2,7 +2,7 @@ package server
 
 import (
 	"context"
-	v1 "kratos-realworld/api/realworld/v1"
+	v1 "kratos-realworld/api/conduit/v1"
 	"kratos-realworld/internal/conf"
 	"kratos-realworld/internal/pkg/middleware/auth"
 	"kratos-realworld/internal/service"
@@ -16,9 +16,16 @@ import (
 
 func NewSkipRoutersMatcher() selector.MatchFunc {
 
-	skipRouters := make(map[string]struct{})
-	skipRouters["/realworld.v1.RealWorld/Login"] = struct{}{}
-	skipRouters["/realworld.v1.RealWorld/Register"] = struct{}{}
+	skipRouters := map[string]struct{}{
+		"/realworld.v1.Conduit/Login":        {},
+		"/realworld.v1.Conduit/Register":     {},
+		"/realworld.v1.Conduit/GetArticle":   {},
+		"/realworld.v1.Conduit/ListArticles": {},
+		"/realworld.v1.Conduit/GetComments":  {},
+		"/realworld.v1.Conduit/GetTags":      {},
+		"/realworld.v1.Conduit/GetProfile":   {},
+	}
+
 	return func(ctx context.Context, operation string) bool {
 		if _, ok := skipRouters[operation]; ok {
 			return false
@@ -28,13 +35,13 @@ func NewSkipRoutersMatcher() selector.MatchFunc {
 }
 
 // NewHTTPServer new a HTTP server.
-func NewHTTPServer(c *conf.Server, jwtc *conf.JWT, greeter *service.RealWorldService, logger log.Logger) *http.Server {
+func NewHTTPServer(c *conf.Server, jwtc *conf.JWT, s *service.ConduitService, logger log.Logger) *http.Server {
 	var opts = []http.ServerOption{
 		http.ErrorEncoder(errorEncoder),
 
 		http.Middleware(
 			recovery.Recovery(),
-			selector.Server(auth.JWTAuth(jwtc.Token)).Match(NewSkipRoutersMatcher()).Build(),
+			selector.Server(auth.JWTAuth(jwtc.Secret)).Match(NewSkipRoutersMatcher()).Build(),
 		),
 		http.Filter(
 			handlers.CORS(
@@ -54,6 +61,6 @@ func NewHTTPServer(c *conf.Server, jwtc *conf.JWT, greeter *service.RealWorldSer
 		opts = append(opts, http.Timeout(c.Http.Timeout.AsDuration()))
 	}
 	srv := http.NewServer(opts...)
-	v1.RegisterRealWorldHTTPServer(srv, greeter)
+	v1.RegisterConduitHTTPServer(srv, s)
 	return srv
 }

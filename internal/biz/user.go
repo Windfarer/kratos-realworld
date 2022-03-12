@@ -2,11 +2,11 @@ package biz
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"kratos-realworld/internal/conf"
 	"kratos-realworld/internal/pkg/middleware/auth"
 
+	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -51,8 +51,9 @@ type UserRepo interface {
 
 type ProfileRepo interface {
 	GetProfile(ctx context.Context, username string) (*Profile, error)
-	FollowUser(ctx context.Context, username string) (*Profile, error)
-	UnfollowUser(ctx context.Context, username string) (*Profile, error)
+	FollowUser(ctx context.Context, currentUsername, username string) error
+	UnfollowUser(ctx context.Context, currentUsername, username string) error
+	GetUserFollowingStatus(ctx context.Context, currentUsername, username string) (following bool, err error)
 }
 
 type UserUsecase struct {
@@ -76,7 +77,7 @@ func NewUserUsecase(ur UserRepo,
 }
 
 func (uc *UserUsecase) generateToken(username string) string {
-	return auth.GenerateToken(uc.jwtc.Token, username)
+	return auth.GenerateToken(uc.jwtc.Secret, username)
 }
 
 func (uc *UserUsecase) Register(ctx context.Context, username, email, password string) (*UserLogin, error) {
@@ -96,12 +97,15 @@ func (uc *UserUsecase) Register(ctx context.Context, username, email, password s
 }
 
 func (uc *UserUsecase) Login(ctx context.Context, email, password string) (*UserLogin, error) {
+	if len(email) == 0 {
+		return nil, errors.New(422, "email", "cannot be empty")
+	}
 	u, err := uc.ur.GetUserByEmail(ctx, email)
 	if err != nil {
 		return nil, err
 	}
 	if !verifyPassword(u.PasswordHash, password) {
-		return nil, errors.New("login failed")
+		return nil, errors.Unauthorized("user", "login failed")
 	}
 
 	return &UserLogin{

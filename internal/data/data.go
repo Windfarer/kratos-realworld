@@ -9,8 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// ProviderSet is data providers.
-var ProviderSet = wire.NewSet(NewData, NewDB, NewUserRepo, NewProfileRepo)
+var ProviderSet = wire.NewSet(NewData, NewDB, NewUserRepo, NewProfileRepo, NewArticleRepo, NewCommentRepo)
 
 // Data .
 type Data struct {

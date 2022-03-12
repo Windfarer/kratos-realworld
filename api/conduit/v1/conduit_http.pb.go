@@ -17,7 +17,7 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
-type RealWorldHTTPServer interface {
+type ConduitHTTPServer interface {
 	AddComment(context.Context, *AddCommentRequest) (*SingleCommentReply, error)
 	CreateArticle(context.Context, *CreateArticleRequest) (*SingleArticleReply, error)
 	DeleteArticle(context.Context, *DeleteArticleRequest) (*SingleArticleReply, error)
@@ -39,36 +39,36 @@ type RealWorldHTTPServer interface {
 	UpdateUser(context.Context, *UpdateUserRequest) (*UserReply, error)
 }
 
-func RegisterRealWorldHTTPServer(s *http.Server, srv RealWorldHTTPServer) {
+func RegisterConduitHTTPServer(s *http.Server, srv ConduitHTTPServer) {
 	r := s.Route("/")
-	r.POST("/api/users/login", _RealWorld_Login0_HTTP_Handler(srv))
-	r.POST("/api/users", _RealWorld_Register0_HTTP_Handler(srv))
-	r.GET("/api/user", _RealWorld_GetCurrentUser0_HTTP_Handler(srv))
-	r.PUT("/api/user", _RealWorld_UpdateUser0_HTTP_Handler(srv))
-	r.GET("/api/profiles/{username}", _RealWorld_GetProfile0_HTTP_Handler(srv))
-	r.POST("/api/profiles/{username}/follow", _RealWorld_FollowUser0_HTTP_Handler(srv))
-	r.DELETE("/api/profiles/{username}/follow", _RealWorld_UnfollowUser0_HTTP_Handler(srv))
-	r.GET("/api/articles", _RealWorld_ListArticles0_HTTP_Handler(srv))
-	r.GET("/api/articles/feed", _RealWorld_FeedArticles0_HTTP_Handler(srv))
-	r.GET("/api/articles/{slug}", _RealWorld_GetArticle0_HTTP_Handler(srv))
-	r.POST("/api/articles", _RealWorld_CreateArticle0_HTTP_Handler(srv))
-	r.PUT("/api/articles/{slug}", _RealWorld_UpdateArticle0_HTTP_Handler(srv))
-	r.DELETE("/api/articles/{slug}", _RealWorld_DeleteArticle0_HTTP_Handler(srv))
-	r.POST("/api/articles/{slug}/comments", _RealWorld_AddComment0_HTTP_Handler(srv))
-	r.GET("/api/articles/{slug}/comments", _RealWorld_GetComments0_HTTP_Handler(srv))
-	r.DELETE("/api/articles/{slug}/comments/{id}", _RealWorld_DeleteComment0_HTTP_Handler(srv))
-	r.POST("/api/articles/{slug}/favorite", _RealWorld_FavoriteArticle0_HTTP_Handler(srv))
-	r.DELETE("/api/articles/{slug}/favorite", _RealWorld_UnfavoriteArticle0_HTTP_Handler(srv))
-	r.GET("/api/tags", _RealWorld_GetTags0_HTTP_Handler(srv))
+	r.POST("/api/users/login", _Conduit_Login0_HTTP_Handler(srv))
+	r.POST("/api/users", _Conduit_Register0_HTTP_Handler(srv))
+	r.GET("/api/user", _Conduit_GetCurrentUser0_HTTP_Handler(srv))
+	r.PUT("/api/user", _Conduit_UpdateUser0_HTTP_Handler(srv))
+	r.GET("/api/profiles/{username}", _Conduit_GetProfile0_HTTP_Handler(srv))
+	r.POST("/api/profiles/{username}/follow", _Conduit_FollowUser0_HTTP_Handler(srv))
+	r.DELETE("/api/profiles/{username}/follow", _Conduit_UnfollowUser0_HTTP_Handler(srv))
+	r.GET("/api/articles", _Conduit_ListArticles0_HTTP_Handler(srv))
+	r.GET("/api/articles/feed", _Conduit_FeedArticles0_HTTP_Handler(srv))
+	r.GET("/api/articles/{slug}", _Conduit_GetArticle0_HTTP_Handler(srv))
+	r.POST("/api/articles", _Conduit_CreateArticle0_HTTP_Handler(srv))
+	r.PUT("/api/articles/{slug}", _Conduit_UpdateArticle0_HTTP_Handler(srv))
+	r.DELETE("/api/articles/{slug}", _Conduit_DeleteArticle0_HTTP_Handler(srv))
+	r.POST("/api/articles/{slug}/comments", _Conduit_AddComment0_HTTP_Handler(srv))
+	r.GET("/api/articles/{slug}/comments", _Conduit_GetComments0_HTTP_Handler(srv))
+	r.DELETE("/api/articles/{slug}/comments/{id}", _Conduit_DeleteComment0_HTTP_Handler(srv))
+	r.POST("/api/articles/{slug}/favorite", _Conduit_FavoriteArticle0_HTTP_Handler(srv))
+	r.DELETE("/api/articles/{slug}/favorite", _Conduit_UnfavoriteArticle0_HTTP_Handler(srv))
+	r.GET("/api/tags", _Conduit_GetTags0_HTTP_Handler(srv))
 }
 
-func _RealWorld_Login0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.Context) error {
+func _Conduit_Login0_HTTP_Handler(srv ConduitHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in LoginRequest
 		if err := ctx.Bind(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, "/realworld.v1.RealWorld/Login")
+		http.SetOperation(ctx, "/realworld.v1.Conduit/Login")
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.Login(ctx, req.(*LoginRequest))
 		})
@@ -81,13 +81,13 @@ func _RealWorld_Login0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.Conte
 	}
 }
 
-func _RealWorld_Register0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.Context) error {
+func _Conduit_Register0_HTTP_Handler(srv ConduitHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in RegisterRequest
 		if err := ctx.Bind(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, "/realworld.v1.RealWorld/Register")
+		http.SetOperation(ctx, "/realworld.v1.Conduit/Register")
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.Register(ctx, req.(*RegisterRequest))
 		})
@@ -100,13 +100,13 @@ func _RealWorld_Register0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.Co
 	}
 }
 
-func _RealWorld_GetCurrentUser0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.Context) error {
+func _Conduit_GetCurrentUser0_HTTP_Handler(srv ConduitHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in GetCurrentUserRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, "/realworld.v1.RealWorld/GetCurrentUser")
+		http.SetOperation(ctx, "/realworld.v1.Conduit/GetCurrentUser")
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.GetCurrentUser(ctx, req.(*GetCurrentUserRequest))
 		})
@@ -119,13 +119,13 @@ func _RealWorld_GetCurrentUser0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx h
 	}
 }
 
-func _RealWorld_UpdateUser0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.Context) error {
+func _Conduit_UpdateUser0_HTTP_Handler(srv ConduitHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in UpdateUserRequest
 		if err := ctx.Bind(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, "/realworld.v1.RealWorld/UpdateUser")
+		http.SetOperation(ctx, "/realworld.v1.Conduit/UpdateUser")
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.UpdateUser(ctx, req.(*UpdateUserRequest))
 		})
@@ -138,7 +138,7 @@ func _RealWorld_UpdateUser0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.
 	}
 }
 
-func _RealWorld_GetProfile0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.Context) error {
+func _Conduit_GetProfile0_HTTP_Handler(srv ConduitHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in GetProfileRequest
 		if err := ctx.BindQuery(&in); err != nil {
@@ -147,7 +147,7 @@ func _RealWorld_GetProfile0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, "/realworld.v1.RealWorld/GetProfile")
+		http.SetOperation(ctx, "/realworld.v1.Conduit/GetProfile")
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.GetProfile(ctx, req.(*GetProfileRequest))
 		})
@@ -160,7 +160,7 @@ func _RealWorld_GetProfile0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.
 	}
 }
 
-func _RealWorld_FollowUser0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.Context) error {
+func _Conduit_FollowUser0_HTTP_Handler(srv ConduitHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in FollowUserRequest
 		if err := ctx.Bind(&in); err != nil {
@@ -169,7 +169,7 @@ func _RealWorld_FollowUser0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, "/realworld.v1.RealWorld/FollowUser")
+		http.SetOperation(ctx, "/realworld.v1.Conduit/FollowUser")
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.FollowUser(ctx, req.(*FollowUserRequest))
 		})
@@ -182,7 +182,7 @@ func _RealWorld_FollowUser0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.
 	}
 }
 
-func _RealWorld_UnfollowUser0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.Context) error {
+func _Conduit_UnfollowUser0_HTTP_Handler(srv ConduitHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in UnfollowUserRequest
 		if err := ctx.BindQuery(&in); err != nil {
@@ -191,7 +191,7 @@ func _RealWorld_UnfollowUser0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx htt
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, "/realworld.v1.RealWorld/UnfollowUser")
+		http.SetOperation(ctx, "/realworld.v1.Conduit/UnfollowUser")
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.UnfollowUser(ctx, req.(*UnfollowUserRequest))
 		})
@@ -204,13 +204,13 @@ func _RealWorld_UnfollowUser0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx htt
 	}
 }
 
-func _RealWorld_ListArticles0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.Context) error {
+func _Conduit_ListArticles0_HTTP_Handler(srv ConduitHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in ListArticlesRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, "/realworld.v1.RealWorld/ListArticles")
+		http.SetOperation(ctx, "/realworld.v1.Conduit/ListArticles")
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.ListArticles(ctx, req.(*ListArticlesRequest))
 		})
@@ -223,13 +223,13 @@ func _RealWorld_ListArticles0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx htt
 	}
 }
 
-func _RealWorld_FeedArticles0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.Context) error {
+func _Conduit_FeedArticles0_HTTP_Handler(srv ConduitHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in FeedArticlesRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, "/realworld.v1.RealWorld/FeedArticles")
+		http.SetOperation(ctx, "/realworld.v1.Conduit/FeedArticles")
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.FeedArticles(ctx, req.(*FeedArticlesRequest))
 		})
@@ -242,7 +242,7 @@ func _RealWorld_FeedArticles0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx htt
 	}
 }
 
-func _RealWorld_GetArticle0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.Context) error {
+func _Conduit_GetArticle0_HTTP_Handler(srv ConduitHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in GetArticleRequest
 		if err := ctx.BindQuery(&in); err != nil {
@@ -251,7 +251,7 @@ func _RealWorld_GetArticle0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, "/realworld.v1.RealWorld/GetArticle")
+		http.SetOperation(ctx, "/realworld.v1.Conduit/GetArticle")
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.GetArticle(ctx, req.(*GetArticleRequest))
 		})
@@ -264,13 +264,13 @@ func _RealWorld_GetArticle0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.
 	}
 }
 
-func _RealWorld_CreateArticle0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.Context) error {
+func _Conduit_CreateArticle0_HTTP_Handler(srv ConduitHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in CreateArticleRequest
 		if err := ctx.Bind(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, "/realworld.v1.RealWorld/CreateArticle")
+		http.SetOperation(ctx, "/realworld.v1.Conduit/CreateArticle")
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.CreateArticle(ctx, req.(*CreateArticleRequest))
 		})
@@ -283,7 +283,7 @@ func _RealWorld_CreateArticle0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx ht
 	}
 }
 
-func _RealWorld_UpdateArticle0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.Context) error {
+func _Conduit_UpdateArticle0_HTTP_Handler(srv ConduitHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in UpdateArticleRequest
 		if err := ctx.Bind(&in); err != nil {
@@ -292,7 +292,7 @@ func _RealWorld_UpdateArticle0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx ht
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, "/realworld.v1.RealWorld/UpdateArticle")
+		http.SetOperation(ctx, "/realworld.v1.Conduit/UpdateArticle")
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.UpdateArticle(ctx, req.(*UpdateArticleRequest))
 		})
@@ -305,7 +305,7 @@ func _RealWorld_UpdateArticle0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx ht
 	}
 }
 
-func _RealWorld_DeleteArticle0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.Context) error {
+func _Conduit_DeleteArticle0_HTTP_Handler(srv ConduitHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in DeleteArticleRequest
 		if err := ctx.BindQuery(&in); err != nil {
@@ -314,7 +314,7 @@ func _RealWorld_DeleteArticle0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx ht
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, "/realworld.v1.RealWorld/DeleteArticle")
+		http.SetOperation(ctx, "/realworld.v1.Conduit/DeleteArticle")
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.DeleteArticle(ctx, req.(*DeleteArticleRequest))
 		})
@@ -327,7 +327,7 @@ func _RealWorld_DeleteArticle0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx ht
 	}
 }
 
-func _RealWorld_AddComment0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.Context) error {
+func _Conduit_AddComment0_HTTP_Handler(srv ConduitHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in AddCommentRequest
 		if err := ctx.Bind(&in); err != nil {
@@ -336,7 +336,7 @@ func _RealWorld_AddComment0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, "/realworld.v1.RealWorld/AddComment")
+		http.SetOperation(ctx, "/realworld.v1.Conduit/AddComment")
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.AddComment(ctx, req.(*AddCommentRequest))
 		})
@@ -349,7 +349,7 @@ func _RealWorld_AddComment0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.
 	}
 }
 
-func _RealWorld_GetComments0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.Context) error {
+func _Conduit_GetComments0_HTTP_Handler(srv ConduitHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in AddCommentRequest
 		if err := ctx.BindQuery(&in); err != nil {
@@ -358,7 +358,7 @@ func _RealWorld_GetComments0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, "/realworld.v1.RealWorld/GetComments")
+		http.SetOperation(ctx, "/realworld.v1.Conduit/GetComments")
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.GetComments(ctx, req.(*AddCommentRequest))
 		})
@@ -371,7 +371,7 @@ func _RealWorld_GetComments0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http
 	}
 }
 
-func _RealWorld_DeleteComment0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.Context) error {
+func _Conduit_DeleteComment0_HTTP_Handler(srv ConduitHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in DeleteCommentRequest
 		if err := ctx.BindQuery(&in); err != nil {
@@ -380,7 +380,7 @@ func _RealWorld_DeleteComment0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx ht
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, "/realworld.v1.RealWorld/DeleteComment")
+		http.SetOperation(ctx, "/realworld.v1.Conduit/DeleteComment")
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.DeleteComment(ctx, req.(*DeleteCommentRequest))
 		})
@@ -393,7 +393,7 @@ func _RealWorld_DeleteComment0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx ht
 	}
 }
 
-func _RealWorld_FavoriteArticle0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.Context) error {
+func _Conduit_FavoriteArticle0_HTTP_Handler(srv ConduitHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in FavoriteArticleRequest
 		if err := ctx.Bind(&in); err != nil {
@@ -402,7 +402,7 @@ func _RealWorld_FavoriteArticle0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx 
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, "/realworld.v1.RealWorld/FavoriteArticle")
+		http.SetOperation(ctx, "/realworld.v1.Conduit/FavoriteArticle")
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.FavoriteArticle(ctx, req.(*FavoriteArticleRequest))
 		})
@@ -415,7 +415,7 @@ func _RealWorld_FavoriteArticle0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx 
 	}
 }
 
-func _RealWorld_UnfavoriteArticle0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.Context) error {
+func _Conduit_UnfavoriteArticle0_HTTP_Handler(srv ConduitHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in UnfavoriteArticleRequest
 		if err := ctx.BindQuery(&in); err != nil {
@@ -424,7 +424,7 @@ func _RealWorld_UnfavoriteArticle0_HTTP_Handler(srv RealWorldHTTPServer) func(ct
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, "/realworld.v1.RealWorld/UnfavoriteArticle")
+		http.SetOperation(ctx, "/realworld.v1.Conduit/UnfavoriteArticle")
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.UnfavoriteArticle(ctx, req.(*UnfavoriteArticleRequest))
 		})
@@ -437,13 +437,13 @@ func _RealWorld_UnfavoriteArticle0_HTTP_Handler(srv RealWorldHTTPServer) func(ct
 	}
 }
 
-func _RealWorld_GetTags0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.Context) error {
+func _Conduit_GetTags0_HTTP_Handler(srv ConduitHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in GetTagsRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, "/realworld.v1.RealWorld/GetTags")
+		http.SetOperation(ctx, "/realworld.v1.Conduit/GetTags")
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.GetTags(ctx, req.(*GetTagsRequest))
 		})
@@ -456,7 +456,7 @@ func _RealWorld_GetTags0_HTTP_Handler(srv RealWorldHTTPServer) func(ctx http.Con
 	}
 }
 
-type RealWorldHTTPClient interface {
+type ConduitHTTPClient interface {
 	AddComment(ctx context.Context, req *AddCommentRequest, opts ...http.CallOption) (rsp *SingleCommentReply, err error)
 	CreateArticle(ctx context.Context, req *CreateArticleRequest, opts ...http.CallOption) (rsp *SingleArticleReply, err error)
 	DeleteArticle(ctx context.Context, req *DeleteArticleRequest, opts ...http.CallOption) (rsp *SingleArticleReply, err error)
@@ -478,19 +478,19 @@ type RealWorldHTTPClient interface {
 	UpdateUser(ctx context.Context, req *UpdateUserRequest, opts ...http.CallOption) (rsp *UserReply, err error)
 }
 
-type RealWorldHTTPClientImpl struct {
+type ConduitHTTPClientImpl struct {
 	cc *http.Client
 }
 
-func NewRealWorldHTTPClient(client *http.Client) RealWorldHTTPClient {
-	return &RealWorldHTTPClientImpl{client}
+func NewConduitHTTPClient(client *http.Client) ConduitHTTPClient {
+	return &ConduitHTTPClientImpl{client}
 }
 
-func (c *RealWorldHTTPClientImpl) AddComment(ctx context.Context, in *AddCommentRequest, opts ...http.CallOption) (*SingleCommentReply, error) {
+func (c *ConduitHTTPClientImpl) AddComment(ctx context.Context, in *AddCommentRequest, opts ...http.CallOption) (*SingleCommentReply, error) {
 	var out SingleCommentReply
 	pattern := "/api/articles/{slug}/comments"
 	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation("/realworld.v1.RealWorld/AddComment"))
+	opts = append(opts, http.Operation("/realworld.v1.Conduit/AddComment"))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -499,11 +499,11 @@ func (c *RealWorldHTTPClientImpl) AddComment(ctx context.Context, in *AddComment
 	return &out, err
 }
 
-func (c *RealWorldHTTPClientImpl) CreateArticle(ctx context.Context, in *CreateArticleRequest, opts ...http.CallOption) (*SingleArticleReply, error) {
+func (c *ConduitHTTPClientImpl) CreateArticle(ctx context.Context, in *CreateArticleRequest, opts ...http.CallOption) (*SingleArticleReply, error) {
 	var out SingleArticleReply
 	pattern := "/api/articles"
 	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation("/realworld.v1.RealWorld/CreateArticle"))
+	opts = append(opts, http.Operation("/realworld.v1.Conduit/CreateArticle"))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -512,11 +512,11 @@ func (c *RealWorldHTTPClientImpl) CreateArticle(ctx context.Context, in *CreateA
 	return &out, err
 }
 
-func (c *RealWorldHTTPClientImpl) DeleteArticle(ctx context.Context, in *DeleteArticleRequest, opts ...http.CallOption) (*SingleArticleReply, error) {
+func (c *ConduitHTTPClientImpl) DeleteArticle(ctx context.Context, in *DeleteArticleRequest, opts ...http.CallOption) (*SingleArticleReply, error) {
 	var out SingleArticleReply
 	pattern := "/api/articles/{slug}"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation("/realworld.v1.RealWorld/DeleteArticle"))
+	opts = append(opts, http.Operation("/realworld.v1.Conduit/DeleteArticle"))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
 	if err != nil {
@@ -525,11 +525,11 @@ func (c *RealWorldHTTPClientImpl) DeleteArticle(ctx context.Context, in *DeleteA
 	return &out, err
 }
 
-func (c *RealWorldHTTPClientImpl) DeleteComment(ctx context.Context, in *DeleteCommentRequest, opts ...http.CallOption) (*SingleCommentReply, error) {
+func (c *ConduitHTTPClientImpl) DeleteComment(ctx context.Context, in *DeleteCommentRequest, opts ...http.CallOption) (*SingleCommentReply, error) {
 	var out SingleCommentReply
 	pattern := "/api/articles/{slug}/comments/{id}"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation("/realworld.v1.RealWorld/DeleteComment"))
+	opts = append(opts, http.Operation("/realworld.v1.Conduit/DeleteComment"))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
 	if err != nil {
@@ -538,11 +538,11 @@ func (c *RealWorldHTTPClientImpl) DeleteComment(ctx context.Context, in *DeleteC
 	return &out, err
 }
 
-func (c *RealWorldHTTPClientImpl) FavoriteArticle(ctx context.Context, in *FavoriteArticleRequest, opts ...http.CallOption) (*SingleArticleReply, error) {
+func (c *ConduitHTTPClientImpl) FavoriteArticle(ctx context.Context, in *FavoriteArticleRequest, opts ...http.CallOption) (*SingleArticleReply, error) {
 	var out SingleArticleReply
 	pattern := "/api/articles/{slug}/favorite"
 	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation("/realworld.v1.RealWorld/FavoriteArticle"))
+	opts = append(opts, http.Operation("/realworld.v1.Conduit/FavoriteArticle"))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -551,11 +551,11 @@ func (c *RealWorldHTTPClientImpl) FavoriteArticle(ctx context.Context, in *Favor
 	return &out, err
 }
 
-func (c *RealWorldHTTPClientImpl) FeedArticles(ctx context.Context, in *FeedArticlesRequest, opts ...http.CallOption) (*MultipleArticlesReply, error) {
+func (c *ConduitHTTPClientImpl) FeedArticles(ctx context.Context, in *FeedArticlesRequest, opts ...http.CallOption) (*MultipleArticlesReply, error) {
 	var out MultipleArticlesReply
 	pattern := "/api/articles/feed"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation("/realworld.v1.RealWorld/FeedArticles"))
+	opts = append(opts, http.Operation("/realworld.v1.Conduit/FeedArticles"))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -564,11 +564,11 @@ func (c *RealWorldHTTPClientImpl) FeedArticles(ctx context.Context, in *FeedArti
 	return &out, err
 }
 
-func (c *RealWorldHTTPClientImpl) FollowUser(ctx context.Context, in *FollowUserRequest, opts ...http.CallOption) (*ProfileReply, error) {
+func (c *ConduitHTTPClientImpl) FollowUser(ctx context.Context, in *FollowUserRequest, opts ...http.CallOption) (*ProfileReply, error) {
 	var out ProfileReply
 	pattern := "/api/profiles/{username}/follow"
 	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation("/realworld.v1.RealWorld/FollowUser"))
+	opts = append(opts, http.Operation("/realworld.v1.Conduit/FollowUser"))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -577,11 +577,11 @@ func (c *RealWorldHTTPClientImpl) FollowUser(ctx context.Context, in *FollowUser
 	return &out, err
 }
 
-func (c *RealWorldHTTPClientImpl) GetArticle(ctx context.Context, in *GetArticleRequest, opts ...http.CallOption) (*SingleArticleReply, error) {
+func (c *ConduitHTTPClientImpl) GetArticle(ctx context.Context, in *GetArticleRequest, opts ...http.CallOption) (*SingleArticleReply, error) {
 	var out SingleArticleReply
 	pattern := "/api/articles/{slug}"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation("/realworld.v1.RealWorld/GetArticle"))
+	opts = append(opts, http.Operation("/realworld.v1.Conduit/GetArticle"))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -590,11 +590,11 @@ func (c *RealWorldHTTPClientImpl) GetArticle(ctx context.Context, in *GetArticle
 	return &out, err
 }
 
-func (c *RealWorldHTTPClientImpl) GetComments(ctx context.Context, in *AddCommentRequest, opts ...http.CallOption) (*MultipleCommentsReply, error) {
+func (c *ConduitHTTPClientImpl) GetComments(ctx context.Context, in *AddCommentRequest, opts ...http.CallOption) (*MultipleCommentsReply, error) {
 	var out MultipleCommentsReply
 	pattern := "/api/articles/{slug}/comments"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation("/realworld.v1.RealWorld/GetComments"))
+	opts = append(opts, http.Operation("/realworld.v1.Conduit/GetComments"))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -603,11 +603,11 @@ func (c *RealWorldHTTPClientImpl) GetComments(ctx context.Context, in *AddCommen
 	return &out, err
 }
 
-func (c *RealWorldHTTPClientImpl) GetCurrentUser(ctx context.Context, in *GetCurrentUserRequest, opts ...http.CallOption) (*UserReply, error) {
+func (c *ConduitHTTPClientImpl) GetCurrentUser(ctx context.Context, in *GetCurrentUserRequest, opts ...http.CallOption) (*UserReply, error) {
 	var out UserReply
 	pattern := "/api/user"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation("/realworld.v1.RealWorld/GetCurrentUser"))
+	opts = append(opts, http.Operation("/realworld.v1.Conduit/GetCurrentUser"))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -616,11 +616,11 @@ func (c *RealWorldHTTPClientImpl) GetCurrentUser(ctx context.Context, in *GetCur
 	return &out, err
 }
 
-func (c *RealWorldHTTPClientImpl) GetProfile(ctx context.Context, in *GetProfileRequest, opts ...http.CallOption) (*ProfileReply, error) {
+func (c *ConduitHTTPClientImpl) GetProfile(ctx context.Context, in *GetProfileRequest, opts ...http.CallOption) (*ProfileReply, error) {
 	var out ProfileReply
 	pattern := "/api/profiles/{username}"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation("/realworld.v1.RealWorld/GetProfile"))
+	opts = append(opts, http.Operation("/realworld.v1.Conduit/GetProfile"))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -629,11 +629,11 @@ func (c *RealWorldHTTPClientImpl) GetProfile(ctx context.Context, in *GetProfile
 	return &out, err
 }
 
-func (c *RealWorldHTTPClientImpl) GetTags(ctx context.Context, in *GetTagsRequest, opts ...http.CallOption) (*TagListReply, error) {
+func (c *ConduitHTTPClientImpl) GetTags(ctx context.Context, in *GetTagsRequest, opts ...http.CallOption) (*TagListReply, error) {
 	var out TagListReply
 	pattern := "/api/tags"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation("/realworld.v1.RealWorld/GetTags"))
+	opts = append(opts, http.Operation("/realworld.v1.Conduit/GetTags"))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -642,11 +642,11 @@ func (c *RealWorldHTTPClientImpl) GetTags(ctx context.Context, in *GetTagsReques
 	return &out, err
 }
 
-func (c *RealWorldHTTPClientImpl) ListArticles(ctx context.Context, in *ListArticlesRequest, opts ...http.CallOption) (*MultipleArticlesReply, error) {
+func (c *ConduitHTTPClientImpl) ListArticles(ctx context.Context, in *ListArticlesRequest, opts ...http.CallOption) (*MultipleArticlesReply, error) {
 	var out MultipleArticlesReply
 	pattern := "/api/articles"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation("/realworld.v1.RealWorld/ListArticles"))
+	opts = append(opts, http.Operation("/realworld.v1.Conduit/ListArticles"))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -655,11 +655,11 @@ func (c *RealWorldHTTPClientImpl) ListArticles(ctx context.Context, in *ListArti
 	return &out, err
 }
 
-func (c *RealWorldHTTPClientImpl) Login(ctx context.Context, in *LoginRequest, opts ...http.CallOption) (*UserReply, error) {
+func (c *ConduitHTTPClientImpl) Login(ctx context.Context, in *LoginRequest, opts ...http.CallOption) (*UserReply, error) {
 	var out UserReply
 	pattern := "/api/users/login"
 	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation("/realworld.v1.RealWorld/Login"))
+	opts = append(opts, http.Operation("/realworld.v1.Conduit/Login"))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -668,11 +668,11 @@ func (c *RealWorldHTTPClientImpl) Login(ctx context.Context, in *LoginRequest, o
 	return &out, err
 }
 
-func (c *RealWorldHTTPClientImpl) Register(ctx context.Context, in *RegisterRequest, opts ...http.CallOption) (*UserReply, error) {
+func (c *ConduitHTTPClientImpl) Register(ctx context.Context, in *RegisterRequest, opts ...http.CallOption) (*UserReply, error) {
 	var out UserReply
 	pattern := "/api/users"
 	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation("/realworld.v1.RealWorld/Register"))
+	opts = append(opts, http.Operation("/realworld.v1.Conduit/Register"))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -681,11 +681,11 @@ func (c *RealWorldHTTPClientImpl) Register(ctx context.Context, in *RegisterRequ
 	return &out, err
 }
 
-func (c *RealWorldHTTPClientImpl) UnfavoriteArticle(ctx context.Context, in *UnfavoriteArticleRequest, opts ...http.CallOption) (*SingleArticleReply, error) {
+func (c *ConduitHTTPClientImpl) UnfavoriteArticle(ctx context.Context, in *UnfavoriteArticleRequest, opts ...http.CallOption) (*SingleArticleReply, error) {
 	var out SingleArticleReply
 	pattern := "/api/articles/{slug}/favorite"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation("/realworld.v1.RealWorld/UnfavoriteArticle"))
+	opts = append(opts, http.Operation("/realworld.v1.Conduit/UnfavoriteArticle"))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
 	if err != nil {
@@ -694,11 +694,11 @@ func (c *RealWorldHTTPClientImpl) UnfavoriteArticle(ctx context.Context, in *Unf
 	return &out, err
 }
 
-func (c *RealWorldHTTPClientImpl) UnfollowUser(ctx context.Context, in *UnfollowUserRequest, opts ...http.CallOption) (*ProfileReply, error) {
+func (c *ConduitHTTPClientImpl) UnfollowUser(ctx context.Context, in *UnfollowUserRequest, opts ...http.CallOption) (*ProfileReply, error) {
 	var out ProfileReply
 	pattern := "/api/profiles/{username}/follow"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation("/realworld.v1.RealWorld/UnfollowUser"))
+	opts = append(opts, http.Operation("/realworld.v1.Conduit/UnfollowUser"))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
 	if err != nil {
@@ -707,11 +707,11 @@ func (c *RealWorldHTTPClientImpl) UnfollowUser(ctx context.Context, in *Unfollow
 	return &out, err
 }
 
-func (c *RealWorldHTTPClientImpl) UpdateArticle(ctx context.Context, in *UpdateArticleRequest, opts ...http.CallOption) (*SingleArticleReply, error) {
+func (c *ConduitHTTPClientImpl) UpdateArticle(ctx context.Context, in *UpdateArticleRequest, opts ...http.CallOption) (*SingleArticleReply, error) {
 	var out SingleArticleReply
 	pattern := "/api/articles/{slug}"
 	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation("/realworld.v1.RealWorld/UpdateArticle"))
+	opts = append(opts, http.Operation("/realworld.v1.Conduit/UpdateArticle"))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
 	if err != nil {
@@ -720,11 +720,11 @@ func (c *RealWorldHTTPClientImpl) UpdateArticle(ctx context.Context, in *UpdateA
 	return &out, err
 }
 
-func (c *RealWorldHTTPClientImpl) UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...http.CallOption) (*UserReply, error) {
+func (c *ConduitHTTPClientImpl) UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...http.CallOption) (*UserReply, error) {
 	var out UserReply
 	pattern := "/api/user"
 	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation("/realworld.v1.RealWorld/UpdateUser"))
+	opts = append(opts, http.Operation("/realworld.v1.Conduit/UpdateUser"))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
 	if err != nil {

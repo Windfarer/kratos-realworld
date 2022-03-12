@@ -2,32 +2,38 @@ package data
 
 import (
 	"context"
+	"kratos-realworld/internal/biz"
+
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
-	"kratos-realworld/internal/biz"
-	"time"
 )
 
 type Article struct {
 	gorm.Model
-	Slug        string
-	Title       string
-	Description string
+	Slug        string `gorm:"size:200"`
+	Title       string `gorm:"size:200"`
+	Description string `gorm:"size:200"`
 	Body        string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
 	Tags        []Tag `gorm:"many2many:article_tags;"`
+	Author      User
 }
 
 type Tag struct {
 	gorm.Model
-	Name string
+	Name string `gorm:"uniqueIndex"`
+	Articles []Article `gorm:"many2many:article_tags;"`
 }
 
 type Following struct {
 	gorm.Model
-	User      uint
-	Following uint
+	User      User
+	Following User
+}
+
+type ArticleFavorite struct {
+	gorm.Model
+	Username    string
+	ArticleSlug string
 }
 
 type articleRepo struct {
@@ -35,42 +41,121 @@ type articleRepo struct {
 	log  *log.Helper
 }
 
-func (articleRepo) ListArticles(ctx context.Context, opts ...biz.ListOption) ([]*biz.Article, error) {
-	return nil, nil
-}
-
-func (articleRepo) FeedArticles(ctx context.Context, opts ...biz.ListOption) ([]*biz.Article, error) {
-	panic("implement me")
-}
-
-func (articleRepo) GetArticle(ctx context.Context, slug string) (*biz.Article, error) {
-	panic("implement me")
-}
-
-func (articleRepo) CreateArticle(ctx context.Context, a *biz.Article) (*biz.Article, error) {
-	panic("implement me")
-}
-
-func (articleRepo) UpdateArticle(ctx context.Context, a *biz.Article) (*biz.Article, error) {
-	panic("implement me")
-}
-
-func (articleRepo) DeleteArticle(ctx context.Context, slug string) (*biz.Article, error) {
-	panic("implement me")
-}
-
-func (articleRepo) FavoriteArticle(ctx context.Context, slug string) (*biz.Article, error) {
-	panic("implement me")
-}
-
-func (articleRepo) UnfavoriteArticle(ctx context.Context, slug string) (*biz.Article, error) {
-	panic("implement me")
-}
-
-// NewGreeterRepo .
 func NewArticleRepo(data *Data, logger log.Logger) biz.ArticleRepo {
 	return &articleRepo{
 		data: data,
 		log:  log.NewHelper(logger),
 	}
+}
+
+func (r *articleRepo) ListArticles(ctx context.Context, opts ...biz.ListOption) (rv []*biz.Article, err error) {
+	var articles []Article
+	result := r.data.db.Find(&articles)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	rv = make([]*biz.Article, len(articles))
+	for _, x := range articles {
+		rv = append(rv, &biz.Article{
+			Slug:        x.Slug,
+			Title:       x.Title,
+			Description: x.Description,
+			Body:        x.Body,
+			CreatedAt:   x.CreatedAt,
+			UpdatedAt:   x.UpdatedAt,
+			Author: &biz.Profile{
+				Username: x.Author.Username,
+				Bio:      x.Author.Bio,
+				Image:    x.Author.Image,
+			},
+		})
+	}
+	return rv, nil
+}
+
+func (r *articleRepo) GetArticle(ctx context.Context, slug string) (rv *biz.Article, err error) {
+	x := new(Article)
+	err = r.data.db.Where("slug = ?", slug).First(&x).Error
+	if err != nil {
+		return nil, err
+	}
+	return &biz.Article{
+		Slug:        x.Slug,
+		Title:       x.Title,
+		Body:        x.Body,
+		Description: x.Description,
+		CreatedAt:   x.CreatedAt,
+		UpdatedAt:   x.UpdatedAt,
+		Author: &biz.Profile{
+			Username: x.Author.Username,
+			Bio:      x.Author.Bio,
+			Image:    x.Author.Image,
+		},
+	}, nil
+}
+
+func (r *articleRepo) CreateArticle(ctx context.Context, a *biz.Article) (*biz.Article, error) {
+	po := Article{
+		Slug:        a.Slug,
+		Title:       a.Title,
+		Description: a.Description,
+		Body:        a.Body,
+		Author:      User{Username: a.AuthorUsername},
+	}
+	result := r.data.db.Create(&po)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return a, nil
+}
+
+func (r *articleRepo) UpdateArticle(ctx context.Context, a *biz.Article) (*biz.Article, error) {
+	var po Article
+	if result := r.data.db.First(&po); result.Error != nil {
+		return nil, result.Error
+	}
+	err := r.data.db.Model(&po).Updates(a).Error
+	return a, err
+}
+
+func (r *articleRepo) DeleteArticle(ctx context.Context, slug string) error {
+	rv := r.data.db.Delete(&Article{}, slug)
+	return rv.Error
+}
+
+func (r *articleRepo) FavoriteArticle(ctx context.Context, currentUsername, slug string) error {
+	af := ArticleFavorite{
+		Username:    currentUsername,
+		ArticleSlug: slug,
+	}
+	return r.data.db.Create(&af).Error
+}
+
+func (r *articleRepo) UnfavoriteArticle(ctx context.Context, currentUsername, slug string) error {
+	po := ArticleFavorite{
+		Username:    currentUsername,
+		ArticleSlug: slug,
+	}
+	return r.data.db.Delete(&po).Error
+}
+
+func (r *articleRepo) GetArticleFavoriteStatus(ctx context.Context, currentUsername string, slug string) (favorited bool, err error) {
+	var po ArticleFavorite
+	if result := r.data.db.First(&po); result.Error != nil {
+		return false, nil
+	}
+	return true, nil
+}
+
+func (r *articleRepo) ListTags(ctx context.Context) (rv []biz.Tag, err error) {
+	var tags []Tag
+	err = r.data.db.Find(&tags).Error
+	if err != nil {
+		return nil, err
+	}
+	rv = make([]biz.Tag, len(tags))
+	for _, x := range tags {
+		rv = append(rv, biz.Tag(x.Name))
+	}
+	return rv, nil
 }

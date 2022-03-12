@@ -7,7 +7,7 @@ import (
 )
 
 func TestGenerateToken(t *testing.T) {
-	tk := GenerateToken("eric")
+	tk := GenerateToken("secret", "eric")
 	spew.Dump(tk)
 	panic("tk")
 }

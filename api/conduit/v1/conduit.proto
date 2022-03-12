@@ -4,10 +4,10 @@ package realworld.v1;
 
 import "google/api/annotations.proto";
 
-option go_package = "kratos-realworld/api/realworld/v1;v1";
+option go_package = "kratos-realworld/api/conduit/v1;v1";
 
 // The greeting service definition.
-service RealWorld {
+service Conduit {
   rpc Login(LoginRequest) returns (UserReply) {
     option (google.api.http) = {
       post: "/api/users/login",

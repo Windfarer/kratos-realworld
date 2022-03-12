@@ -54,7 +54,7 @@ generate:
 .PHONY: wire
 # wire
 wire:
-	cd cmd/kratos-realworld/ && wire
+	cd cmd/conduit/ && wire
 
 .PHONY: startdb
 # start db

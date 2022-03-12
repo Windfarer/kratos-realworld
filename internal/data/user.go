@@ -6,10 +6,15 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+
+	"github.com/go-kratos/kratos/v2/errors"
 )
 
 type FollowUser struct {
 	gorm.Model
+	user      string
+	following string
 }
 
 type userRepo struct {
@@ -26,9 +31,20 @@ type User struct {
 	PasswordHash string `gorm:"size:500"`
 }
 
-// NewGreeterRepo .
 func NewUserRepo(data *Data, logger log.Logger) biz.UserRepo {
 	return &userRepo{
+		data: data,
+		log:  log.NewHelper(logger),
+	}
+}
+
+type profileRepo struct {
+	data *Data
+	log  *log.Helper
+}
+
+func NewProfileRepo(data *Data, logger log.Logger) biz.ProfileRepo {
+	return &profileRepo{
 		data: data,
 		log:  log.NewHelper(logger),
 	}
@@ -48,8 +64,11 @@ func (r *userRepo) CreateUser(ctx context.Context, u *biz.User) error {
 
 func (r *userRepo) GetUserByEmail(ctx context.Context, email string) (rv *biz.User, err error) {
 	u := new(User)
-	err = r.data.db.Where("email = ?", email).First(u).Error
-	if err != nil {
+	result := r.data.db.Where("email = ?", email).First(u)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return nil, errors.NotFound("user", "not found by email")
+	}
+	if result.Error != nil {
 		return nil, err
 	}
 	return &biz.User{
@@ -76,19 +95,6 @@ func (r *userRepo) GetUserByUsername(ctx context.Context, username string) (rv *
 	}, nil
 }
 
-type profileRepo struct {
-	data *Data
-	log  *log.Helper
-}
-
-// NewGreeterRepo .
-func NewProfileRepo(data *Data, logger log.Logger) biz.ProfileRepo {
-	return &profileRepo{
-		data: data,
-		log:  log.NewHelper(logger),
-	}
-}
-
 func (r *profileRepo) GetProfile(ctx context.Context, username string) (rv *biz.Profile, err error) {
 	u := new(User)
 	err = r.data.db.Where("username = ?", username).First(u).Error
@@ -96,20 +102,6 @@ func (r *profileRepo) GetProfile(ctx context.Context, username string) (rv *biz.
 		return nil, err
 	}
 	return &biz.Profile{
-		Username: u.Username,
-		Bio:      u.Bio,
-		Image:    u.Image,
-		Following: false, // fixme
-	}, nil
-}
-
-func (r *profileRepo) FollowUser(ctx context.Context, username string) (rv *biz.Profile, err error) {
-	u := new(User)
-	err = r.data.db.Where("username = ?", username).First(u).Error
-	if err != nil {
-		return nil, err
-	}
-	return &biz.Profile{
 		Username:  u.Username,
 		Bio:       u.Bio,
 		Image:     u.Image,
@@ -117,16 +109,26 @@ func (r *profileRepo) FollowUser(ctx context.Context, username string) (rv *biz.
 	}, nil
 }
 
-func (r *profileRepo) UnfollowUser(ctx context.Context, username string) (rv *biz.Profile, err error) {
-	u := new(User)
-	err = r.data.db.Where("username = ?", username).First(u).Error
-	if err != nil {
-		return nil, err
+func (r *profileRepo) FollowUser(ctx context.Context, currentUsername, username string) (err error) {
+	po := FollowUser{
+		user:      currentUsername,
+		following: username,
 	}
-	return &biz.Profile{
-		Username:  u.Username,
-		Bio:       u.Bio,
-		Image:     u.Image,
-		Following: false, // fixme
-	}, nil
+	return r.data.db.Clauses(clause.OnConflict{DoNothing: true}).Create(&po).Error
+}
+
+func (r *profileRepo) UnfollowUser(ctx context.Context, currentUsername, username string) (err error) {
+	po := FollowUser{
+		user:      currentUsername,
+		following: username,
+	}
+	return r.data.db.Delete(&po).Error
+}
+
+func (r *profileRepo) GetUserFollowingStatus(ctx context.Context, currentUsername, username string) (following bool, err error) {
+	var po FollowUser
+	if result := r.data.db.First(&po); result.Error != nil {
+		return false, nil
+	}
+	return true, nil
 }

@@ -74,5 +74,5 @@ func FromContext(ctx context.Context) *CurrentUser {
 }
 
 func WithContext(ctx context.Context, user *CurrentUser) context.Context {
-	context.WithValue(ctx, currentUserKey, user)
+	return context.WithValue(ctx, currentUserKey, user)
 }

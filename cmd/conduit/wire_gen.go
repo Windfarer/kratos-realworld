@@ -28,9 +28,9 @@ func initApp(confServer *conf.Server, confData *conf.Data, jwt *conf.JWT, logger
 	userRepo := data.NewUserRepo(dataData, logger)
 	profileRepo := data.NewProfileRepo(dataData, logger)
 	userUsecase := biz.NewUserUsecase(userRepo, profileRepo, logger, jwt)
-	realWorldService := service.NewRealWorldService(userUsecase, logger)
-	httpServer := server.NewHTTPServer(confServer, jwt, realWorldService, logger)
-	grpcServer := server.NewGRPCServer(confServer, realWorldService, logger)
+	conduitService := service.NewConduitService(userUsecase, logger)
+	httpServer := server.NewHTTPServer(confServer, jwt, conduitService, logger)
+	grpcServer := server.NewGRPCServer(confServer, conduitService, logger)
 	app := newApp(logger, httpServer, grpcServer)
 	return app, func() {
 		cleanup()
