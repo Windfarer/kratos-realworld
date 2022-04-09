@@ -164,28 +164,24 @@ message DeleteArticleRequest {
 }
 
 message UpdateArticleRequest {
-
   message Article {
       string title = 1;
       string description = 2;
       string body = 3;
       repeated string tagList = 4;
   }
-
   Article article = 1;
   string slug = 2;
 }
 
 
 message CreateArticleRequest {
-
   message Article {
       string title = 1;
       string description = 2;
       string body = 3;
       repeated string tagList = 4;
   }
-
   Article article = 1;
 }
 
@@ -223,7 +219,6 @@ message GetCurrentUserRequest {}
 
 
 message UpdateUserRequest {
-
     message User {
       string email = 1;
       string token = 2;
@@ -247,105 +242,25 @@ message UserReply {
 }
 
 message ProfileReply {
-  message Profile {
-      string username = 1;
-      string bio = 2;
-      string image = 3;
-      bool following = 4;
-  }
   Profile profile = 1;
 }
 
 message SingleArticleReply {
-
-  message Author {
-      string username = 1;
-      string bio = 2;
-      string image = 3;
-      bool following = 4;
-  }
-
-  message Article {
-      string slug = 1;
-      string title = 2;
-      string description = 3;
-      string body = 4;
-      repeated string tagList = 5;
-      string createdAt = 6;
-      string updatedAt = 7;
-      bool favorited = 8;
-      uint32 favoritesCount = 9;
-      Author author = 10;
-  }
-
   Article article = 1;
 }
 
 message MultipleArticlesReply {
-
-  message Author {
-      string username = 1;
-      string bio = 2;
-      string image = 3;
-      bool following = 4;
-  }
-
-  message Articles {
-      string slug = 1;
-      string title = 2;
-      string description = 3;
-      string body = 4;
-      repeated string tagList = 5;
-      string createdAt = 6;
-      string updatedAt = 7;
-      bool favorited = 8;
-      uint32 favoritesCount = 9;
-      Author author = 10;
-  }
-
-  repeated Articles articles = 1;
+  repeated Article articles = 1;
   uint32 articlesCount = 2;
 }
 
 message SingleCommentReply {
-
-  message Author {
-      string username = 1;
-      string bio = 2;
-      string image = 3;
-      bool following = 4;
-  }
-
-  message Comment {
-      uint32 id = 1;
-      string createdAt = 2;
-      string updatedAt = 3;
-      string body = 4;
-      Author author = 5;
-  }
-
   Comment comment = 1;
 }
 
 
 message MultipleCommentsReply {
-
-    message Author {
-        string username = 1;
-        string bio = 2;
-        string image = 3;
-        bool following = 4;
-    }
-
-    message Comments {
-        uint32 id = 1;
-        string createdAt = 2;
-        string updatedAt = 3;
-        string body = 4;
-        Author author = 5;
-    }
-
-    repeated Comments comments = 1;
+    repeated Comment comments = 1;
 }
 
 message TagListReply {
@@ -371,3 +286,31 @@ message RegisterRequest {
   User user = 1;
 }
 
+
+message Article {
+  string slug = 1;
+  string title = 2;
+  string description = 3;
+  string body = 4;
+  repeated string tagList = 5;
+  string createdAt = 6;
+  string updatedAt = 7;
+  bool favorited = 8;
+  uint32 favoritesCount = 9;
+  Profile author = 10;
+}
+
+message Profile {
+  string username = 1;
+  string bio = 2;
+  string image = 3;
+  bool following = 4;
+}
+
+message Comment {
+  uint32 id = 1;
+  string createdAt = 2;
+  string updatedAt = 3;
+  string body = 4;
+  Profile author = 5;
+}

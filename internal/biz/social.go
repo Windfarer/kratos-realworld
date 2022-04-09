@@ -10,26 +10,26 @@ import (
 )
 
 type ArticleRepo interface {
-	ListArticles(ctx context.Context, opts ...ListOption) ([]*Article, error)
-	GetArticle(ctx context.Context, slug string) (*Article, error)
-	CreateArticle(ctx context.Context, a *Article) (*Article, error)
-	UpdateArticle(ctx context.Context, a *Article) (*Article, error)
-	DeleteArticle(ctx context.Context, slug string) error
+	List(ctx context.Context, opts ...ListOption) ([]*Article, error)
+	Get(ctx context.Context, slug string) (*Article, error)
+	Create(ctx context.Context, a *Article) (*Article, error)
+	Update(ctx context.Context, a *Article) (*Article, error)
+	Delete(ctx context.Context, slug string) error
 
-	FavoriteArticle(ctx context.Context, currentUsername string, slug string) error
-	UnfavoriteArticle(ctx context.Context, currentUsername string, slug string) error
-	GetArticleFavoriteStatus(ctx context.Context, currentUsername string, slug string) (favorited bool, err error)
+	Favorite(ctx context.Context, currentUsername string, slug string) error
+	Unfavorite(ctx context.Context, currentUsername string, slug string) error
+	GetFavoriteStatus(ctx context.Context, currentUsername string, slug string) (favorited bool, err error)
 }
 
 type CommentRepo interface {
-	AddComment(ctx context.Context, c *Comment) (*Comment, error)
-	GetComment(ctx context.Context, id uint) (*Comment, error)
-	ListComments(ctx context.Context, slug string) ([]*Comment, error)
-	DeleteComment(ctx context.Context, id uint) error
+	Create(ctx context.Context, slug string, c *Comment) (*Comment, error)
+	Get(ctx context.Context, id uint) (*Comment, error)
+	List(ctx context.Context, slug string) ([]*Comment, error)
+	Delete(ctx context.Context, id uint) error
 }
 
 type TagRepo interface {
-	GetTags(ctx context.Context) ([]*Tag, error)
+	List(ctx context.Context) ([]*Tag, error)
 }
 
 type SocialUsecase struct {
@@ -117,81 +117,81 @@ func (uc *SocialUsecase) UnfollowUser(ctx context.Context, username string) (rv 
 }
 
 func (uc *SocialUsecase) GetArticle(ctx context.Context, slug string) (rv *Article, err error) {
-	return uc.ar.GetArticle(ctx, slug)
+	return uc.ar.Get(ctx, slug)
 }
 
 func (uc *SocialUsecase) CreateArticle(ctx context.Context, in *Article) (rv *Article, err error) {
 	u := auth.FromContext(ctx)
 	in.Author.Username = u.Username
-	return uc.ar.CreateArticle(ctx, in)
+	return uc.ar.Create(ctx, in)
 }
 
 func (uc *SocialUsecase) DeleteArticle(ctx context.Context, slug string) (err error) {
-	a, err := uc.ar.GetArticle(ctx, slug)
+	a, err := uc.ar.Get(ctx, slug)
 	if err != nil {
 		return err
 	}
 	if !a.verifyAuthor(auth.FromContext(ctx).Username) {
 		return errors.New("no permission 401")
 	}
-	return uc.ar.DeleteArticle(ctx, a.Slug)
+	return uc.ar.Delete(ctx, a.Slug)
 }
 
-func (uc *SocialUsecase) AddComment(ctx context.Context, in *Comment) (rv *Comment, err error) {
-	return uc.cr.AddComment(ctx, in)
+func (uc *SocialUsecase) AddComment(ctx context.Context, slug string, in *Comment) (rv *Comment, err error) {
+	return uc.cr.Create(ctx, slug, in)
 }
 
 func (uc *SocialUsecase) ListComments(ctx context.Context, slug string) (rv []*Comment, err error) {
-	uc.cr.ListComments(ctx, slug)
+	uc.cr.List(ctx, slug)
 	return nil, nil
 }
 
 func (uc *SocialUsecase) DeleteComment(ctx context.Context, id uint) (err error) {
-	a, err := uc.cr.GetComment(ctx, id)
+	a, err := uc.cr.Get(ctx, id)
 	if err != nil {
 		return err
 	}
 	if !a.verifyAuthor(auth.FromContext(ctx).Username) {
 		return errors.New("no permission 401")
 	}
-	err = uc.cr.DeleteComment(ctx, id)
+	err = uc.cr.Delete(ctx, id)
 	return err
 }
 
 func (uc *SocialUsecase) FeedArticles(ctx context.Context, opts ...ListOption) (rv []*Article, err error) {
-	rv, err = uc.ar.ListArticles(ctx, opts...)
+	rv, err = uc.ar.List(ctx, opts...)
 	return rv, err
 }
 
 func (uc *SocialUsecase) ListArticles(ctx context.Context, opts ...ListOption) (rv []*Article, err error) {
-	rv, err = uc.ar.ListArticles(ctx, opts...)
+	rv, err = uc.ar.List(ctx, opts...)
 	return rv, err
 }
 
 func (uc *SocialUsecase) UpdateArticle(ctx context.Context, in *Article) (rv *Article, err error) {
-	a, err := uc.ar.GetArticle(ctx, in.Slug)
+	a, err := uc.ar.Get(ctx, in.Slug)
 	if err != nil {
 		return nil, err
 	}
 	if !a.verifyAuthor(auth.FromContext(ctx).Username) {
 		return nil, errors.New("no permission 401")
 	}
-	rv, err = uc.ar.UpdateArticle(ctx, in)
+	rv, err = uc.ar.Update(ctx, in)
 	return nil, nil
 }
 
 func (uc *SocialUsecase) GetTags(ctx context.Context) (rv []*Tag, err error) {
-	uc.tr.GetTags(ctx)
+	uc.tr.List(ctx)
 	return nil, nil
 }
 
 func (uc *SocialUsecase) FavoriteArticle(ctx context.Context, slug string) (rv *Article, err error) {
-	a, err := uc.ar.GetArticle(ctx, slug)
+	a, err := uc.ar.Get(ctx, slug)
 	if err != nil {
 		return nil, err
 	}
 	cu := auth.FromContext(ctx)
-	err = uc.ar.FavoriteArticle(ctx, cu.Username, a.Slug)
+	err = uc.ar.Favorite(ctx, cu.Username, a.Slug)
 	if err != nil {
 		return nil, err
 	}
@@ -199,12 +199,12 @@ func (uc *SocialUsecase) FavoriteArticle(ctx context.Context, slug string) (rv *
 }
 
 func (uc *SocialUsecase) UnfavoriteArticle(ctx context.Context, slug string) (rv *Article, err error) {
-	a, err := uc.ar.GetArticle(ctx, slug)
+	a, err := uc.ar.Get(ctx, slug)
 	if err != nil {
 		return nil, err
 	}
 	cu := auth.FromContext(ctx)
-	err = uc.ar.UnfavoriteArticle(ctx, cu.Username, a.Slug)
+	err = uc.ar.Unfavorite(ctx, cu.Username, a.Slug)
 	if err != nil {
 		return nil, err
 	}

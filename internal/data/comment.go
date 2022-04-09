@@ -27,7 +27,7 @@ func NewCommentRepo(data *Data, logger log.Logger) biz.CommentRepo {
 	}
 }
 
-func (r *commentRepo) AddComment(ctx context.Context, in *biz.Comment) (rv *biz.Comment, err error) {
+func (r *commentRepo) Create(ctx context.Context, slug string, in *biz.Comment) (rv *biz.Comment, err error) {
 	c := Comment{
 		Article: Article{},
 		Body:    in.Body,
@@ -48,7 +48,7 @@ func (r *commentRepo) AddComment(ctx context.Context, in *biz.Comment) (rv *biz.
 	}, nil
 }
 
-func (r *commentRepo) ListComments(ctx context.Context, slug string) (rv []*biz.Comment, err error) {
+func (r *commentRepo) List(ctx context.Context, slug string) (rv []*biz.Comment, err error) {
 	var comments []biz.Comment
 	result := r.data.db.Find(&comments)
 	if result.Error != nil {
@@ -69,7 +69,7 @@ func (r *commentRepo) ListComments(ctx context.Context, slug string) (rv []*biz.
 	return rv, result.Error
 }
 
-func (r *commentRepo) GetComment(ctx context.Context, id uint) (*biz.Comment, error) {
+func (r *commentRepo) Get(ctx context.Context, id uint) (*biz.Comment, error) {
 	var c Comment
 	result := r.data.db.First(&c, id)
 	if result.Error != nil {
@@ -88,6 +88,6 @@ func (r *commentRepo) GetComment(ctx context.Context, id uint) (*biz.Comment, er
 	}, nil
 }
 
-func (r *commentRepo) DeleteComment(ctx context.Context, id uint) (err error) {
+func (r *commentRepo) Delete(ctx context.Context, id uint) (err error) {
 	return r.data.db.Delete(&Comment{}, id).Error
 }

@@ -400,6 +400,46 @@ components:
             properties:
                 body:
                     type: string
+        Article:
+            type: object
+            properties:
+                slug:
+                    type: string
+                title:
+                    type: string
+                description:
+                    type: string
+                body:
+                    type: string
+                tagList:
+                    type: array
+                    items:
+                        type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+                favorited:
+                    type: boolean
+                favoritesCount:
+                    type: integer
+                    format: uint32
+                author:
+                    $ref: '#/components/schemas/Profile'
+        Comment:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: uint32
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+                body:
+                    type: string
+                author:
+                    $ref: '#/components/schemas/Profile'
         CreateArticleRequest:
             type: object
             properties:
@@ -446,55 +486,18 @@ components:
                 articles:
                     type: array
                     items:
-                        $ref: '#/components/schemas/MultipleArticlesReply_Articles'
+                        $ref: '#/components/schemas/Article'
                 articlesCount:
                     type: integer
                     format: uint32
-        MultipleArticlesReply_Articles:
-            type: object
-            properties:
-                slug:
-                    type: string
-                title:
-                    type: string
-                description:
-                    type: string
-                body:
-                    type: string
-                tagList:
-                    type: array
-                    items:
-                        type: string
-                createdAt:
-                    type: string
-                updatedAt:
-                    type: string
-                favorited:
-                    type: boolean
-                favoritesCount:
-                    type: integer
-                    format: uint32
-                author:
-                    $ref: '#/components/schemas/MultipleArticlesReply_Author'
-        MultipleArticlesReply_Author:
-            type: object
-            properties:
-                username:
-                    type: string
-                bio:
-                    type: string
-                image:
-                    type: string
-                following:
-                    type: boolean
         MultipleCommentsReply:
             type: object
             properties:
                 comments:
                     type: array
                     items:
-                        $ref: '#/components/schemas/MultipleCommentsReply_Comments'
-        MultipleCommentsReply_Author:
+                        $ref: '#/components/schemas/Comment'
+        Profile:
             type: object
             properties:
                 username:
@@ -505,36 +508,11 @@ components:
                     type: string
                 following:
                     type: boolean
-        MultipleCommentsReply_Comments:
-            type: object
-            properties:
-                id:
-                    type: integer
-                    format: uint32
-                createdAt:
-                    type: string
-                updatedAt:
-                    type: string
-                body:
-                    type: string
-                author:
-                    $ref: '#/components/schemas/MultipleCommentsReply_Author'
         ProfileReply:
             type: object
             properties:
                 profile:
-                    $ref: '#/components/schemas/ProfileReply_Profile'
-        ProfileReply_Profile:
-            type: object
-            properties:
-                username:
-                    type: string
-                bio:
-                    type: string
-                image:
-                    type: string
-                following:
-                    type: boolean
+                    $ref: '#/components/schemas/Profile'
         RegisterRequest:
             type: object
             properties:
@@ -553,74 +531,12 @@ components:
             type: object
             properties:
                 article:
-                    $ref: '#/components/schemas/SingleArticleReply_Article'
-        SingleArticleReply_Article:
-            type: object
-            properties:
-                slug:
-                    type: string
-                title:
-                    type: string
-                description:
-                    type: string
-                body:
-                    type: string
-                tagList:
-                    type: array
-                    items:
-                        type: string
-                createdAt:
-                    type: string
-                updatedAt:
-                    type: string
-                favorited:
-                    type: boolean
-                favoritesCount:
-                    type: integer
-                    format: uint32
-                author:
-                    $ref: '#/components/schemas/SingleArticleReply_Author'
-        SingleArticleReply_Author:
-            type: object
-            properties:
-                username:
-                    type: string
-                bio:
-                    type: string
-                image:
-                    type: string
-                following:
-                    type: boolean
+                    $ref: '#/components/schemas/Article'
         SingleCommentReply:
             type: object
             properties:
                 comment:
-                    $ref: '#/components/schemas/SingleCommentReply_Comment'
-        SingleCommentReply_Author:
-            type: object
-            properties:
-                username:
-                    type: string
-                bio:
-                    type: string
-                image:
-                    type: string
-                following:
-                    type: boolean
-        SingleCommentReply_Comment:
-            type: object
-            properties:
-                id:
-                    type: integer
-                    format: uint32
-                createdAt:
-                    type: string
-                updatedAt:
-                    type: string
-                body:
-                    type: string
-                author:
-                    $ref: '#/components/schemas/SingleCommentReply_Author'
+                    $ref: '#/components/schemas/Comment'
         TagListReply:
             type: object
             properties:

@@ -7,9 +7,8 @@ import (
 	"kratos-realworld/internal/biz"
 )
 
-func convertSingleArticleReply(do *biz.Article) *v1.SingleArticleReply {
-	return &v1.SingleArticleReply{
-		Article: &v1.SingleArticleReply_Article{
+func convertArticle(do *biz.Article) *v1.Article {
+	return &v1.Article{
 			Slug:           do.Slug,
 			Title:          do.Title,
 			Description:    do.Description,
@@ -19,41 +18,27 @@ func convertSingleArticleReply(do *biz.Article) *v1.SingleArticleReply {
 			UpdatedAt:      do.UpdatedAt.String(),
 			Favorited:      do.Favorited,
 			FavoritesCount: do.FavoritesCount,
-			Author: &v1.SingleArticleReply_Author{
-				Username:  do.Author.Username,
-				Bio:       do.Author.Bio,
-				Image:     do.Author.Image,
-				Following: do.Author.Following,
-			},
-		},
+			Author: convertProfile(do.Author),
+		}
+}
+
+func convertComment(do *biz.Comment) *v1.Comment {
+	return &v1.Comment{
+		Id: uint32(do.ID),
+		CreatedAt:      do.CreatedAt.String(),
+		UpdatedAt:      do.UpdatedAt.String(),
+		Body: do.Body,
+		Author: convertProfile(do.Author),
 	}
 }
 
-func convertMultipleArticlesReply(dos []*biz.Article) (dto *v1.MultipleArticlesReply) {
-	dto = &v1.MultipleArticlesReply{
-		Articles: make([]*v1.MultipleArticlesReply_Articles, 0),
-	}
-	for _, do := range dos {
-		dto.Articles = append(dto.Articles, &v1.MultipleArticlesReply_Articles{
-			Slug:           do.Slug,
-			Title:          do.Title,
-			Description:    do.Description,
-			Body:           do.Body,
-			TagList:        do.TagList,
-			CreatedAt:      do.CreatedAt.String(),
-			UpdatedAt:      do.UpdatedAt.String(),
-			Favorited:      do.Favorited,
-			FavoritesCount: do.FavoritesCount,
-			Author: &v1.MultipleArticlesReply_Author{
-				Username:  do.Author.Username,
-				Bio:       do.Author.Bio,
-				Image:     do.Author.Image,
-				Following: do.Author.Following,
-			},
-		},
-		)
-	}
-	return dto
+func convertProfile(do *biz.Profile) *v1.Profile {
+	return &v1.Profile{
+			Username:  do.Username,
+			Bio:       do.Bio,
+			Image:     do.Image,
+			Following: do.Following,
+		}
 }
 
 func (s *ConduitService) GetProfile(ctx context.Context, req *v1.GetProfileRequest) (reply *v1.ProfileReply, err error) {
@@ -62,12 +47,7 @@ func (s *ConduitService) GetProfile(ctx context.Context, req *v1.GetProfileReque
 		return nil, err
 	}
 	return &v1.ProfileReply{
-		Profile: &v1.ProfileReply_Profile{
-			Username:  rv.Username,
-			Bio:       rv.Bio,
-			Image:     rv.Image,
-			Following: rv.Following,
-		},
+		Profile: convertProfile(rv),
 	}, nil
 }
 
@@ -77,12 +57,7 @@ func (s *ConduitService) FollowUser(ctx context.Context, req *v1.FollowUserReque
 		return nil, err
 	}
 	return &v1.ProfileReply{
-		Profile: &v1.ProfileReply_Profile{
-			Username:  rv.Username,
-			Bio:       rv.Bio,
-			Image:     rv.Image,
-			Following: rv.Following,
-		},
+		Profile: convertProfile(rv),
 	}, nil
 }
 
@@ -92,12 +67,7 @@ func (s *ConduitService) UnfollowUser(ctx context.Context, req *v1.UnfollowUserR
 		return nil, err
 	}
 	return &v1.ProfileReply{
-		Profile: &v1.ProfileReply_Profile{
-			Username:  rv.Username,
-			Bio:       rv.Bio,
-			Image:     rv.Image,
-			Following: rv.Following,
-		},
+		Profile: convertProfile(rv),
 	}, nil
 }
 
@@ -106,8 +76,9 @@ func (s *ConduitService) GetArticle(ctx context.Context, req *v1.GetArticleReque
 	if err != nil {
 		return nil, err
 	}
-
-	return convertSingleArticleReply(rv), nil
+	return &v1.SingleArticleReply{
+		Article: convertArticle(rv),
+	}, nil
 }
 
 func (s *ConduitService) CreateArticle(ctx context.Context, req *v1.CreateArticleRequest) (reply *v1.SingleArticleReply, err error) {
@@ -120,9 +91,9 @@ func (s *ConduitService) CreateArticle(ctx context.Context, req *v1.CreateArticl
 	if err != nil {
 		return nil, err
 	}
-
-	return convertSingleArticleReply(rv), nil
-}
+	return &v1.SingleArticleReply{
+		Article: convertArticle(rv),
+	}, nil}
 
 func (s *ConduitService) UpdateArticle(ctx context.Context, req *v1.UpdateArticleRequest) (reply *v1.SingleArticleReply, err error) {
 	rv, err := s.sc.UpdateArticle(ctx, &biz.Article{
@@ -134,8 +105,9 @@ func (s *ConduitService) UpdateArticle(ctx context.Context, req *v1.UpdateArticl
 	if err != nil {
 		return nil, err
 	}
-
-	return convertSingleArticleReply(rv), nil
+	return &v1.SingleArticleReply{
+		Article: convertArticle(rv),
+	}, nil
 }
 
 func (s *ConduitService) DeleteArticle(ctx context.Context, req *v1.DeleteArticleRequest) (reply *v1.SingleArticleReply, err error) {
@@ -143,35 +115,56 @@ func (s *ConduitService) DeleteArticle(ctx context.Context, req *v1.DeleteArticl
 	if err != nil {
 		return nil, err
 	}
-
-	return convertSingleArticleReply(&biz.Article{Slug: req.Slug}), nil
+	return &v1.SingleArticleReply{
+		Article: &v1.Article{
+			Slug: req.Slug,
+		},
+	}, nil
 }
 
 func (s *ConduitService) AddComment(ctx context.Context, req *v1.AddCommentRequest) (reply *v1.SingleCommentReply, err error) {
-	reply = &v1.SingleCommentReply{}
-
-	return reply, nil
+	rv, err := s.sc.AddComment(ctx, req.Slug, &biz.Comment{
+		Body: req.Comment.Body,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &v1.SingleCommentReply{
+		Comment: convertComment(rv),
+	}, nil
 }
 
 func (s *ConduitService) GetComments(ctx context.Context, req *v1.AddCommentRequest) (reply *v1.MultipleCommentsReply, err error) {
-	reply = &v1.MultipleCommentsReply{}
-
-	return reply, nil
+	rv, err := s.sc.ListComments(ctx, req.Slug)
+	if err != nil {
+		return nil, err
+	}
+	comments := make([]*v1.Comment, 0)
+	for _, x := range rv {
+		comments = append(comments, convertComment(x))
+	}
+	return &v1.MultipleCommentsReply{Comments: comments}, nil
 }
 
 func (s *ConduitService) DeleteComment(ctx context.Context, req *v1.DeleteCommentRequest) (reply *v1.SingleCommentReply, err error) {
 	reply = &v1.SingleCommentReply{}
 
-	return reply, nil
-}
+	return &v1.SingleCommentReply{
+		Comment: &v1.Comment{
+			Id: uint32(req.Id),
+		},
+	}, nil}
 
 func (s *ConduitService) FeedArticles(ctx context.Context, req *v1.FeedArticlesRequest) (reply *v1.MultipleArticlesReply, err error) {
 	rv, err := s.sc.ListArticles(ctx)
 	if err != nil {
 		return nil, err
 	}
-
-	return convertMultipleArticlesReply(rv), nil
+	articles := make([]*v1.Article, 0)
+	for _, x := range rv {
+		articles = append(articles, convertArticle(x))
+	}
+	return &v1.MultipleArticlesReply{Articles: articles}, nil
 }
 
 func (s *ConduitService) ListArticles(ctx context.Context, req *v1.ListArticlesRequest) (reply *v1.MultipleArticlesReply, err error) {
@@ -179,8 +172,11 @@ func (s *ConduitService) ListArticles(ctx context.Context, req *v1.ListArticlesR
 	if err != nil {
 		return nil, err
 	}
-
-	return convertMultipleArticlesReply(rv), nil
+	articles := make([]*v1.Article, 0)
+	for _, x := range rv {
+		articles = append(articles, convertArticle(x))
+	}
+	return &v1.MultipleArticlesReply{Articles: articles}, nil
 }
 
 func (s *ConduitService) GetTags(ctx context.Context, req *v1.GetTagsRequest) (reply *v1.TagListReply, err error) {
@@ -194,7 +190,9 @@ func (s *ConduitService) FavoriteArticle(ctx context.Context, req *v1.FavoriteAr
 	if err != nil {
 		return nil, err
 	}
-	return convertSingleArticleReply(rv), nil
+	return &v1.SingleArticleReply{
+		Article: convertArticle(rv),
+	}, nil
 }
 
 func (s *ConduitService) UnfavoriteArticle(ctx context.Context, req *v1.UnfavoriteArticleRequest) (reply *v1.SingleArticleReply, err error) {
@@ -202,5 +200,7 @@ func (s *ConduitService) UnfavoriteArticle(ctx context.Context, req *v1.Unfavori
 	if err != nil {
 		return nil, err
 	}
-	return convertSingleArticleReply(rv), nil
+	return &v1.SingleArticleReply{
+		Article: convertArticle(rv),
+	}, nil
 }

@@ -48,7 +48,7 @@ func NewArticleRepo(data *Data, logger log.Logger) biz.ArticleRepo {
 	}
 }
 
-func (r *articleRepo) ListArticles(ctx context.Context, opts ...biz.ListOption) (rv []*biz.Article, err error) {
+func (r *articleRepo) List(ctx context.Context, opts ...biz.ListOption) (rv []*biz.Article, err error) {
 	var articles []Article
 	result := r.data.db.Find(&articles)
 	if result.Error != nil {
@@ -73,7 +73,7 @@ func (r *articleRepo) ListArticles(ctx context.Context, opts ...biz.ListOption) 
 	return rv, nil
 }
 
-func (r *articleRepo) GetArticle(ctx context.Context, slug string) (rv *biz.Article, err error) {
+func (r *articleRepo) Get(ctx context.Context, slug string) (rv *biz.Article, err error) {
 	x := new(Article)
 	err = r.data.db.Where("slug = ?", slug).First(&x).Error
 	if err != nil {
@@ -94,7 +94,7 @@ func (r *articleRepo) GetArticle(ctx context.Context, slug string) (rv *biz.Arti
 	}, nil
 }
 
-func (r *articleRepo) CreateArticle(ctx context.Context, a *biz.Article) (*biz.Article, error) {
+func (r *articleRepo) Create(ctx context.Context, a *biz.Article) (*biz.Article, error) {
 	po := Article{
 		Slug:        a.Slug,
 		Title:       a.Title,
@@ -109,7 +109,7 @@ func (r *articleRepo) CreateArticle(ctx context.Context, a *biz.Article) (*biz.A
 	return a, nil
 }
 
-func (r *articleRepo) UpdateArticle(ctx context.Context, a *biz.Article) (*biz.Article, error) {
+func (r *articleRepo) Update(ctx context.Context, a *biz.Article) (*biz.Article, error) {
 	var po Article
 	if result := r.data.db.First(&po); result.Error != nil {
 		return nil, result.Error
@@ -118,12 +118,12 @@ func (r *articleRepo) UpdateArticle(ctx context.Context, a *biz.Article) (*biz.A
 	return a, err
 }
 
-func (r *articleRepo) DeleteArticle(ctx context.Context, slug string) error {
+func (r *articleRepo) Delete(ctx context.Context, slug string) error {
 	rv := r.data.db.Delete(&Article{}, slug)
 	return rv.Error
 }
 
-func (r *articleRepo) FavoriteArticle(ctx context.Context, currentUsername, slug string) error {
+func (r *articleRepo) Favorite(ctx context.Context, currentUsername, slug string) error {
 	af := ArticleFavorite{
 		Username:    currentUsername,
 		ArticleSlug: slug,
@@ -131,7 +131,7 @@ func (r *articleRepo) FavoriteArticle(ctx context.Context, currentUsername, slug
 	return r.data.db.Create(&af).Error
 }
 
-func (r *articleRepo) UnfavoriteArticle(ctx context.Context, currentUsername, slug string) error {
+func (r *articleRepo) Unfavorite(ctx context.Context, currentUsername, slug string) error {
 	po := ArticleFavorite{
 		Username:    currentUsername,
 		ArticleSlug: slug,
@@ -139,7 +139,7 @@ func (r *articleRepo) UnfavoriteArticle(ctx context.Context, currentUsername, sl
 	return r.data.db.Delete(&po).Error
 }
 
-func (r *articleRepo) GetArticleFavoriteStatus(ctx context.Context, currentUsername string, slug string) (favorited bool, err error) {
+func (r *articleRepo) GetFavoriteStatus(ctx context.Context, currentUsername string, slug string) (favorited bool, err error) {
 	var po ArticleFavorite
 	if result := r.data.db.First(&po); result.Error != nil {
 		return false, nil
