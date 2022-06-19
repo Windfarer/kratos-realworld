@@ -15,12 +15,13 @@ type Article struct {
 	Description string `gorm:"size:200"`
 	Body        string
 	Tags        []Tag `gorm:"many2many:article_tags;"`
+	AuthorID    uint
 	Author      User
 }
 
 type Tag struct {
 	gorm.Model
-	Name string `gorm:"uniqueIndex"`
+	Name     string    `gorm:"size:200;uniqueIndex"`
 	Articles []Article `gorm:"many2many:article_tags;"`
 }
 
@@ -41,6 +42,22 @@ type articleRepo struct {
 	log  *log.Helper
 }
 
+func convertArticle(x Article) *biz.Article {
+	return &biz.Article{
+		Slug:        x.Slug,
+		Title:       x.Title,
+		Description: x.Description,
+		Body:        x.Body,
+		CreatedAt:   x.CreatedAt,
+		UpdatedAt:   x.UpdatedAt,
+		Author: &biz.Profile{
+			Username: x.Author.Username,
+			Bio:      x.Author.Bio,
+			Image:    x.Author.Image,
+		},
+	}
+}
+
 func NewArticleRepo(data *Data, logger log.Logger) biz.ArticleRepo {
 	return &articleRepo{
 		data: data,
@@ -49,29 +66,19 @@ func NewArticleRepo(data *Data, logger log.Logger) biz.ArticleRepo {
 }
 
 func (r *articleRepo) List(ctx context.Context, opts ...biz.ListOption) (rv []*biz.Article, err error) {
+
 	var articles []Article
-	result := r.data.db.Find(&articles)
+	result := r.data.db.Preload("Author").Find(&articles)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	rv = make([]*biz.Article, len(articles))
-	for _, x := range articles {
-		rv = append(rv, &biz.Article{
-			Slug:        x.Slug,
-			Title:       x.Title,
-			Description: x.Description,
-			Body:        x.Body,
-			CreatedAt:   x.CreatedAt,
-			UpdatedAt:   x.UpdatedAt,
-			Author: &biz.Profile{
-				Username: x.Author.Username,
-				Bio:      x.Author.Bio,
-				Image:    x.Author.Image,
-			},
-		})
+	for i, x := range articles {
+		rv[i] = convertArticle(x)
 	}
 	return rv, nil
 }
+
 
 func (r *articleRepo) Get(ctx context.Context, slug string) (rv *biz.Article, err error) {
 	x := new(Article)
@@ -106,7 +113,7 @@ func (r *articleRepo) Create(ctx context.Context, a *biz.Article) (*biz.Article,
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return a, nil
+	return convertArticle(po), nil
 }
 
 func (r *articleRepo) Update(ctx context.Context, a *biz.Article) (*biz.Article, error) {
@@ -115,7 +122,7 @@ func (r *articleRepo) Update(ctx context.Context, a *biz.Article) (*biz.Article,
 		return nil, result.Error
 	}
 	err := r.data.db.Model(&po).Updates(a).Error
-	return a, err
+	return convertArticle(po), err
 }
 
 func (r *articleRepo) Delete(ctx context.Context, slug string) error {
@@ -148,14 +155,14 @@ func (r *articleRepo) GetFavoriteStatus(ctx context.Context, currentUsername str
 }
 
 func (r *articleRepo) ListTags(ctx context.Context) (rv []biz.Tag, err error) {
-	var tags []Tag
+	var tags []*Tag
 	err = r.data.db.Find(&tags).Error
 	if err != nil {
 		return nil, err
 	}
 	rv = make([]biz.Tag, len(tags))
-	for _, x := range tags {
-		rv = append(rv, biz.Tag(x.Name))
+	for i, x := range tags {
+		rv[i] = biz.Tag(x.Name)
 	}
 	return rv, nil
 }

@@ -20,6 +20,6 @@ type ConduitService struct {
 	log *log.Helper
 }
 
-func NewConduitService(uc *biz.UserUsecase, logger log.Logger) *ConduitService {
-	return &ConduitService{uc: uc, log: log.NewHelper(logger)}
+func NewConduitService(uc *biz.UserUsecase, sc *biz.SocialUsecase, logger log.Logger) *ConduitService {
+	return &ConduitService{uc: uc, sc:sc, log: log.NewHelper(logger)}
 }

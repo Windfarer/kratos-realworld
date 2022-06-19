@@ -19,6 +19,8 @@ type ArticleRepo interface {
 	Favorite(ctx context.Context, currentUsername string, slug string) error
 	Unfavorite(ctx context.Context, currentUsername string, slug string) error
 	GetFavoriteStatus(ctx context.Context, currentUsername string, slug string) (favorited bool, err error)
+
+	ListTags(ctx context.Context) ([]Tag, error)
 }
 
 type CommentRepo interface {
@@ -28,14 +30,9 @@ type CommentRepo interface {
 	Delete(ctx context.Context, id uint) error
 }
 
-type TagRepo interface {
-	List(ctx context.Context) ([]*Tag, error)
-}
-
 type SocialUsecase struct {
 	ar ArticleRepo
 	cr CommentRepo
-	tr TagRepo
 	pr ProfileRepo
 
 	log *log.Helper
@@ -52,9 +49,9 @@ type Article struct {
 	Favorited      bool
 	FavoritesCount uint32
 
-	AuthorUsername       string
+	AuthorUsername string
 
-	Author         *Profile
+	Author *Profile
 }
 
 type Comment struct {
@@ -63,11 +60,12 @@ type Comment struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 
-	ArticleID uint
+	ArticleID      uint
 	AuthorUsername string
 
-	Article   *Article
-	Author         *Profile
+	Article  *Article
+	AuthorID uint
+	Author   *Profile
 }
 
 type Tag string
@@ -80,11 +78,12 @@ func (o *Comment) verifyAuthor(username string) bool {
 	return o.Author.Username == username
 }
 
-func NewSocialUsecase(ar ArticleRepo,
+func NewSocialUsecase(
+	ar ArticleRepo,
 	pr ProfileRepo,
 	cr CommentRepo,
-	tr TagRepo, logger log.Logger) *SocialUsecase {
-	return &SocialUsecase{ar: ar, cr: cr, tr: tr, pr: pr, log: log.NewHelper(logger)}
+	logger log.Logger) *SocialUsecase {
+	return &SocialUsecase{ar: ar, cr: cr, pr: pr, log: log.NewHelper(logger)}
 }
 
 func (uc *SocialUsecase) GetProfile(ctx context.Context, username string) (rv *Profile, err error) {
@@ -122,7 +121,7 @@ func (uc *SocialUsecase) GetArticle(ctx context.Context, slug string) (rv *Artic
 
 func (uc *SocialUsecase) CreateArticle(ctx context.Context, in *Article) (rv *Article, err error) {
 	u := auth.FromContext(ctx)
-	in.Author.Username = u.Username
+	in.AuthorUsername = u.Username
 	return uc.ar.Create(ctx, in)
 }
 
@@ -138,12 +137,13 @@ func (uc *SocialUsecase) DeleteArticle(ctx context.Context, slug string) (err er
 }
 
 func (uc *SocialUsecase) AddComment(ctx context.Context, slug string, in *Comment) (rv *Comment, err error) {
+	u := auth.FromContext(ctx)
+	in.AuthorUsername = u.Username
 	return uc.cr.Create(ctx, slug, in)
 }
 
 func (uc *SocialUsecase) ListComments(ctx context.Context, slug string) (rv []*Comment, err error) {
-	uc.cr.List(ctx, slug)
-	return nil, nil
+	return uc.cr.List(ctx, slug)
 }
 
 func (uc *SocialUsecase) DeleteComment(ctx context.Context, id uint) (err error) {
@@ -180,9 +180,8 @@ func (uc *SocialUsecase) UpdateArticle(ctx context.Context, in *Article) (rv *Ar
 	return nil, nil
 }
 
-func (uc *SocialUsecase) GetTags(ctx context.Context) (rv []*Tag, err error) {
-	uc.tr.List(ctx)
-	return nil, nil
+func (uc *SocialUsecase) GetTags(ctx context.Context) (rv []Tag, err error) {
+	return uc.ar.ListTags(ctx)
 }
 
 func (uc *SocialUsecase) FavoriteArticle(ctx context.Context, slug string) (rv *Article, err error) {

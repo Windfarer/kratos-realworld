@@ -417,8 +417,10 @@ components:
                         type: string
                 createdAt:
                     type: string
+                    format: RFC3339
                 updatedAt:
                     type: string
+                    format: RFC3339
                 favorited:
                     type: boolean
                 favoritesCount:
@@ -434,8 +436,10 @@ components:
                     format: uint32
                 createdAt:
                     type: string
+                    format: RFC3339
                 updatedAt:
                     type: string
+                    format: RFC3339
                 body:
                     type: string
                 author:

@@ -10,8 +10,10 @@ import (
 
 type Comment struct {
 	gorm.Model
+	ArticleID uint
 	Article Article
 	Body    string
+	AuthorID uint
 	Author  User
 }
 
@@ -55,8 +57,8 @@ func (r *commentRepo) List(ctx context.Context, slug string) (rv []*biz.Comment,
 		return nil, result.Error
 	}
 	rv = make([]*biz.Comment, len(comments))
-	for _, x := range comments {
-		rv = append(rv, &biz.Comment{
+	for i, x := range comments {
+		rv[i] = &biz.Comment{
 			Article: nil, // fixme
 			Body:    x.Body,
 			Author: &biz.Profile{
@@ -64,7 +66,7 @@ func (r *commentRepo) List(ctx context.Context, slug string) (rv []*biz.Comment,
 				Bio:      x.Author.Bio,
 				Image:    x.Author.Image,
 			},
-		})
+		}
 	}
 	return rv, result.Error
 }

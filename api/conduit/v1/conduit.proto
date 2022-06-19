@@ -3,6 +3,7 @@ syntax = "proto3";
 package realworld.v1;
 
 import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "kratos-realworld/api/conduit/v1;v1";
 
@@ -293,8 +294,8 @@ message Article {
   string description = 3;
   string body = 4;
   repeated string tagList = 5;
-  string createdAt = 6;
-  string updatedAt = 7;
+  google.protobuf.Timestamp createdAt = 6;
+  google.protobuf.Timestamp updatedAt = 7;
   bool favorited = 8;
   uint32 favoritesCount = 9;
   Profile author = 10;
@@ -309,8 +310,8 @@ message Profile {
 
 message Comment {
   uint32 id = 1;
-  string createdAt = 2;
-  string updatedAt = 3;
+  google.protobuf.Timestamp createdAt = 2;
+  google.protobuf.Timestamp updatedAt = 3;
   string body = 4;
   Profile author = 5;
 }

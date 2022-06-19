@@ -3,42 +3,44 @@ package service
 import (
 	"context"
 
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	v1 "kratos-realworld/api/conduit/v1"
 	"kratos-realworld/internal/biz"
 )
 
 func convertArticle(do *biz.Article) *v1.Article {
 	return &v1.Article{
-			Slug:           do.Slug,
-			Title:          do.Title,
-			Description:    do.Description,
-			Body:           do.Body,
-			TagList:        do.TagList,
-			CreatedAt:      do.CreatedAt.String(),
-			UpdatedAt:      do.UpdatedAt.String(),
-			Favorited:      do.Favorited,
-			FavoritesCount: do.FavoritesCount,
-			Author: convertProfile(do.Author),
-		}
+		Slug:           do.Slug,
+		Title:          do.Title,
+		Description:    do.Description,
+		Body:           do.Body,
+		TagList:        do.TagList,
+		CreatedAt:      timestamppb.New(do.CreatedAt),
+		UpdatedAt:      timestamppb.New(do.UpdatedAt),
+		Favorited:      do.Favorited,
+		FavoritesCount: do.FavoritesCount,
+		Author:         convertProfile(do.Author),
+	}
 }
 
 func convertComment(do *biz.Comment) *v1.Comment {
 	return &v1.Comment{
-		Id: uint32(do.ID),
-		CreatedAt:      do.CreatedAt.String(),
-		UpdatedAt:      do.UpdatedAt.String(),
-		Body: do.Body,
-		Author: convertProfile(do.Author),
+		Id:        uint32(do.ID),
+		CreatedAt: timestamppb.New(do.CreatedAt),
+		UpdatedAt: timestamppb.New(do.UpdatedAt),
+		Body:      do.Body,
+		Author:    convertProfile(do.Author),
 	}
 }
 
 func convertProfile(do *biz.Profile) *v1.Profile {
 	return &v1.Profile{
-			Username:  do.Username,
-			Bio:       do.Bio,
-			Image:     do.Image,
-			Following: do.Following,
-		}
+		Username:  do.Username,
+		Bio:       do.Bio,
+		Image:     do.Image,
+		Following: do.Following,
+	}
 }
 
 func (s *ConduitService) GetProfile(ctx context.Context, req *v1.GetProfileRequest) (reply *v1.ProfileReply, err error) {
@@ -93,7 +95,8 @@ func (s *ConduitService) CreateArticle(ctx context.Context, req *v1.CreateArticl
 	}
 	return &v1.SingleArticleReply{
 		Article: convertArticle(rv),
-	}, nil}
+	}, nil
+}
 
 func (s *ConduitService) UpdateArticle(ctx context.Context, req *v1.UpdateArticleRequest) (reply *v1.SingleArticleReply, err error) {
 	rv, err := s.sc.UpdateArticle(ctx, &biz.Article{
@@ -153,10 +156,14 @@ func (s *ConduitService) DeleteComment(ctx context.Context, req *v1.DeleteCommen
 		Comment: &v1.Comment{
 			Id: uint32(req.Id),
 		},
-	}, nil}
+	}, nil
+}
 
 func (s *ConduitService) FeedArticles(ctx context.Context, req *v1.FeedArticlesRequest) (reply *v1.MultipleArticlesReply, err error) {
-	rv, err := s.sc.ListArticles(ctx)
+	rv, err := s.sc.ListArticles(ctx,
+		biz.ListLimit(req.Limit),
+		biz.ListOffset(req.Offset),
+	)
 	if err != nil {
 		return nil, err
 	}
