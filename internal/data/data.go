@@ -36,7 +36,13 @@ func NewDB(c *conf.Data) *gorm.DB {
 }
 
 func InitDB(db *gorm.DB) {
-	if err := db.AutoMigrate(&User{},&Article{},&Comment{}); err != nil {
+	if err := db.AutoMigrate(
+		&User{},
+		&Article{},
+		&Comment{},
+		&ArticleFavorite{},
+		&Following{},
+		); err != nil {
 		panic(err)
 	}
 }

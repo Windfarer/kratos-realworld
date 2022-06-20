@@ -27,7 +27,9 @@ type Tag struct {
 
 type Following struct {
 	gorm.Model
+	UserID    uint
 	User      User
+	FollowingID uint
 	Following User
 }
 
@@ -66,7 +68,7 @@ func NewArticleRepo(data *Data, logger log.Logger) biz.ArticleRepo {
 }
 
 func (r *articleRepo) List(ctx context.Context, opts ...biz.ListOption) (rv []*biz.Article, err error) {
-
+	
 	var articles []Article
 	result := r.data.db.Preload("Author").Find(&articles)
 	if result.Error != nil {
@@ -86,6 +88,9 @@ func (r *articleRepo) Get(ctx context.Context, slug string) (rv *biz.Article, er
 	if err != nil {
 		return nil, err
 	}
+	var fc int64
+	err = r.data.db.Where("article_slug = ?", slug).Count(&fc).Error
+
 	return &biz.Article{
 		Slug:        x.Slug,
 		Title:       x.Title,
@@ -93,6 +98,7 @@ func (r *articleRepo) Get(ctx context.Context, slug string) (rv *biz.Article, er
 		Description: x.Description,
 		CreatedAt:   x.CreatedAt,
 		UpdatedAt:   x.UpdatedAt,
+		FavoritesCount: uint32(fc),
 		Author: &biz.Profile{
 			Username: x.Author.Username,
 			Bio:      x.Author.Bio,

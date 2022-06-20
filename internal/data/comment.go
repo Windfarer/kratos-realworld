@@ -10,11 +10,11 @@ import (
 
 type Comment struct {
 	gorm.Model
-	ArticleID uint
-	Article Article
-	Body    string
-	AuthorID uint
-	Author  User
+	ArticleSlug string
+	Article     Article `gorm:"references:Slug"`
+	Body        string
+	AuthorID    uint
+	Author      User
 }
 
 type commentRepo struct {
@@ -29,11 +29,11 @@ func NewCommentRepo(data *Data, logger log.Logger) biz.CommentRepo {
 	}
 }
 
-func (r *commentRepo) Create(ctx context.Context, slug string, in *biz.Comment) (rv *biz.Comment, err error) {
+func (r *commentRepo) Create(ctx context.Context, in *biz.Comment) (rv *biz.Comment, err error) {
 	c := Comment{
-		Article: Article{},
+		ArticleSlug: in.Article.Slug,
 		Body:    in.Body,
-		Author: User{},
+		AuthorID: in.AuthorID,
 	}
 	result := r.data.db.Create(&c)
 	if result.Error != nil {
@@ -51,8 +51,8 @@ func (r *commentRepo) Create(ctx context.Context, slug string, in *biz.Comment) 
 }
 
 func (r *commentRepo) List(ctx context.Context, slug string) (rv []*biz.Comment, err error) {
-	var comments []biz.Comment
-	result := r.data.db.Find(&comments)
+	var comments []Comment
+	result := r.data.db.Where("article_slug = ?", slug).Find(&comments)
 	if result.Error != nil {
 		return nil, result.Error
 	}

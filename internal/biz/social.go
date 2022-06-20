@@ -3,10 +3,13 @@ package biz
 import (
 	"context"
 	"errors"
-	"kratos-realworld/internal/pkg/middleware/auth"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
+
+	"kratos-realworld/internal/pkg/middleware/auth"
 )
 
 type ArticleRepo interface {
@@ -24,7 +27,7 @@ type ArticleRepo interface {
 }
 
 type CommentRepo interface {
-	Create(ctx context.Context, slug string, c *Comment) (*Comment, error)
+	Create(ctx context.Context, c *Comment) (*Comment, error)
 	Get(ctx context.Context, id uint) (*Comment, error)
 	List(ctx context.Context, slug string) ([]*Comment, error)
 	Delete(ctx context.Context, id uint) error
@@ -69,6 +72,11 @@ type Comment struct {
 }
 
 type Tag string
+
+func slugify(title string) string {
+	re, _ := regexp.Compile(`[^\w]`)
+	return strings.ToLower(re.ReplaceAllString(title, "-"))
+}
 
 func (o *Article) verifyAuthor(username string) bool {
 	return o.Author.Username == username
@@ -121,6 +129,7 @@ func (uc *SocialUsecase) GetArticle(ctx context.Context, slug string) (rv *Artic
 
 func (uc *SocialUsecase) CreateArticle(ctx context.Context, in *Article) (rv *Article, err error) {
 	u := auth.FromContext(ctx)
+	in.Slug = slugify(in.Title)
 	in.AuthorUsername = u.Username
 	return uc.ar.Create(ctx, in)
 }
@@ -139,7 +148,8 @@ func (uc *SocialUsecase) DeleteArticle(ctx context.Context, slug string) (err er
 func (uc *SocialUsecase) AddComment(ctx context.Context, slug string, in *Comment) (rv *Comment, err error) {
 	u := auth.FromContext(ctx)
 	in.AuthorUsername = u.Username
-	return uc.cr.Create(ctx, slug, in)
+	in.Article = &Article{Slug: slug}
+	return uc.cr.Create(ctx, in)
 }
 
 func (uc *SocialUsecase) ListComments(ctx context.Context, slug string) (rv []*Comment, err error) {

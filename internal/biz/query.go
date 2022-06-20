@@ -7,6 +7,7 @@ type ListOptions struct {
 	Tag     string
 	Offset  int64
 	Limit   int64
+	CurrentUsername string
 }
 
 func ListFilter(filter map[string]string) ListOption {
@@ -24,5 +25,11 @@ func ListOffset(offset int64) ListOption {
 func ListLimit(limit int64) ListOption {
 	return func(o *ListOptions) {
 		o.Limit = limit
+	}
+}
+
+func ListCurrentUsername(name string) ListOption {
+	return func(o *ListOptions) {
+		o.CurrentUsername = name
 	}
 }
