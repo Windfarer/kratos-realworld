@@ -396,7 +396,7 @@ func _Conduit_DeleteComment0_HTTP_Handler(srv ConduitHTTPServer) func(ctx http.C
 func _Conduit_FavoriteArticle0_HTTP_Handler(srv ConduitHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in FavoriteArticleRequest
-		if err := ctx.Bind(&in); err != nil {
+		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
 		if err := ctx.BindVars(&in); err != nil {
@@ -541,10 +541,10 @@ func (c *ConduitHTTPClientImpl) DeleteComment(ctx context.Context, in *DeleteCom
 func (c *ConduitHTTPClientImpl) FavoriteArticle(ctx context.Context, in *FavoriteArticleRequest, opts ...http.CallOption) (*SingleArticleReply, error) {
 	var out SingleArticleReply
 	pattern := "/api/articles/{slug}/favorite"
-	path := binding.EncodeURL(pattern, in, false)
+	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation("/realworld.v1.Conduit/FavoriteArticle"))
 	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

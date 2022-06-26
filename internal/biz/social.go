@@ -19,9 +19,10 @@ type ArticleRepo interface {
 	Update(ctx context.Context, a *Article) (*Article, error)
 	Delete(ctx context.Context, slug string) error
 
-	Favorite(ctx context.Context, currentUsername string, slug string) error
-	Unfavorite(ctx context.Context, currentUsername string, slug string) error
-	GetFavoriteStatus(ctx context.Context, currentUsername string, slug string) (favorited bool, err error)
+	Favorite(ctx context.Context, currentUserID uint, slug string) error
+	Unfavorite(ctx context.Context, currentUserID uint, slug string) error
+	GetFavoritesStatus(ctx context.Context, currentUserID uint, slugs []string) (favorited []bool, err error)
+	GetFavoritesCounts(ctx context.Context, slugs []string) (count []uint32, err error)
 
 	ListTags(ctx context.Context) ([]Tag, error)
 }
@@ -52,7 +53,7 @@ type Article struct {
 	Favorited      bool
 	FavoritesCount uint32
 
-	AuthorUsername string
+	AuthorUserID uint
 
 	Author *Profile
 }
@@ -63,8 +64,8 @@ type Comment struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 
-	ArticleID      uint
-	AuthorUsername string
+	ArticleID    uint
+	AuthorUserID uint
 
 	Article  *Article
 	AuthorID uint
@@ -78,12 +79,12 @@ func slugify(title string) string {
 	return strings.ToLower(re.ReplaceAllString(title, "-"))
 }
 
-func (o *Article) verifyAuthor(username string) bool {
-	return o.Author.Username == username
+func (o *Article) verifyAuthor(id uint) bool {
+	return o.Author.ID == id
 }
 
-func (o *Comment) verifyAuthor(username string) bool {
-	return o.Author.Username == username
+func (o *Comment) verifyAuthor(id uint) bool {
+	return o.Author.ID == id
 }
 
 func NewSocialUsecase(
@@ -100,7 +101,12 @@ func (uc *SocialUsecase) GetProfile(ctx context.Context, username string) (rv *P
 
 func (uc *SocialUsecase) FollowUser(ctx context.Context, username string) (rv *Profile, err error) {
 	cu := auth.FromContext(ctx)
-	err = uc.pr.FollowUser(ctx, cu.Username, username)
+	
+	fu, err := uc.pr.GetProfile(ctx, username)
+	if err != nil {
+		return nil, err
+	}
+	err = uc.pr.FollowUser(ctx, cu.UserID, fu.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -113,8 +119,13 @@ func (uc *SocialUsecase) FollowUser(ctx context.Context, username string) (rv *P
 
 func (uc *SocialUsecase) UnfollowUser(ctx context.Context, username string) (rv *Profile, err error) {
 	cu := auth.FromContext(ctx)
+	fu, err := uc.pr.GetProfile(ctx, username)
 	if err != nil {
-		uc.pr.UnfollowUser(ctx, cu.Username, username)
+		return nil, err
+	}
+	uc.pr.UnfollowUser(ctx, cu.UserID, fu.ID)
+	if err != nil {
+		return nil, err
 	}
 	rv, err = uc.pr.GetProfile(ctx, username)
 	if err != nil {
@@ -130,8 +141,12 @@ func (uc *SocialUsecase) GetArticle(ctx context.Context, slug string) (rv *Artic
 func (uc *SocialUsecase) CreateArticle(ctx context.Context, in *Article) (rv *Article, err error) {
 	u := auth.FromContext(ctx)
 	in.Slug = slugify(in.Title)
-	in.AuthorUsername = u.Username
-	return uc.ar.Create(ctx, in)
+	in.AuthorUserID = u.UserID
+	a, err := uc.ar.Create(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return a, err
 }
 
 func (uc *SocialUsecase) DeleteArticle(ctx context.Context, slug string) (err error) {
@@ -139,7 +154,7 @@ func (uc *SocialUsecase) DeleteArticle(ctx context.Context, slug string) (err er
 	if err != nil {
 		return err
 	}
-	if !a.verifyAuthor(auth.FromContext(ctx).Username) {
+	if !a.verifyAuthor(auth.FromContext(ctx).UserID) {
 		return errors.New("no permission 401")
 	}
 	return uc.ar.Delete(ctx, a.Slug)
@@ -147,7 +162,7 @@ func (uc *SocialUsecase) DeleteArticle(ctx context.Context, slug string) (err er
 
 func (uc *SocialUsecase) AddComment(ctx context.Context, slug string, in *Comment) (rv *Comment, err error) {
 	u := auth.FromContext(ctx)
-	in.AuthorUsername = u.Username
+	in.AuthorUserID = u.UserID
 	in.Article = &Article{Slug: slug}
 	return uc.cr.Create(ctx, in)
 }
@@ -161,7 +176,7 @@ func (uc *SocialUsecase) DeleteComment(ctx context.Context, id uint) (err error)
 	if err != nil {
 		return err
 	}
-	if !a.verifyAuthor(auth.FromContext(ctx).Username) {
+	if !a.verifyAuthor(auth.FromContext(ctx).UserID) {
 		return errors.New("no permission 401")
 	}
 	err = uc.cr.Delete(ctx, id)
@@ -183,7 +198,7 @@ func (uc *SocialUsecase) UpdateArticle(ctx context.Context, in *Article) (rv *Ar
 	if err != nil {
 		return nil, err
 	}
-	if !a.verifyAuthor(auth.FromContext(ctx).Username) {
+	if !a.verifyAuthor(auth.FromContext(ctx).UserID) {
 		return nil, errors.New("no permission 401")
 	}
 	rv, err = uc.ar.Update(ctx, in)
@@ -200,11 +215,11 @@ func (uc *SocialUsecase) FavoriteArticle(ctx context.Context, slug string) (rv *
 		return nil, err
 	}
 	cu := auth.FromContext(ctx)
-	err = uc.ar.Favorite(ctx, cu.Username, a.Slug)
+	err = uc.ar.Favorite(ctx, cu.UserID, a.Slug)
 	if err != nil {
 		return nil, err
 	}
-	return
+	return a, nil
 }
 
 func (uc *SocialUsecase) UnfavoriteArticle(ctx context.Context, slug string) (rv *Article, err error) {
@@ -213,9 +228,9 @@ func (uc *SocialUsecase) UnfavoriteArticle(ctx context.Context, slug string) (rv
 		return nil, err
 	}
 	cu := auth.FromContext(ctx)
-	err = uc.ar.Unfavorite(ctx, cu.Username, a.Slug)
+	err = uc.ar.Unfavorite(ctx, cu.UserID, a.Slug)
 	if err != nil {
 		return nil, err
 	}
-	return
+	return a, nil
 }

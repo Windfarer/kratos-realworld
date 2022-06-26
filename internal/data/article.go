@@ -4,8 +4,10 @@ import (
 	"context"
 	"kratos-realworld/internal/biz"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type Article struct {
@@ -27,15 +29,15 @@ type Tag struct {
 
 type Following struct {
 	gorm.Model
-	UserID    uint
-	User      User
+	UserID      uint
+	User        User
 	FollowingID uint
-	Following User
+	Following   User
 }
 
 type ArticleFavorite struct {
 	gorm.Model
-	Username    string
+	UserID    uint
 	ArticleSlug string
 }
 
@@ -68,19 +70,19 @@ func NewArticleRepo(data *Data, logger log.Logger) biz.ArticleRepo {
 }
 
 func (r *articleRepo) List(ctx context.Context, opts ...biz.ListOption) (rv []*biz.Article, err error) {
-	
+
 	var articles []Article
 	result := r.data.db.Preload("Author").Find(&articles)
 	if result.Error != nil {
 		return nil, result.Error
 	}
+	spew.Dump(articles)
 	rv = make([]*biz.Article, len(articles))
 	for i, x := range articles {
 		rv[i] = convertArticle(x)
 	}
 	return rv, nil
 }
-
 
 func (r *articleRepo) Get(ctx context.Context, slug string) (rv *biz.Article, err error) {
 	x := new(Article)
@@ -92,12 +94,12 @@ func (r *articleRepo) Get(ctx context.Context, slug string) (rv *biz.Article, er
 	err = r.data.db.Where("article_slug = ?", slug).Count(&fc).Error
 
 	return &biz.Article{
-		Slug:        x.Slug,
-		Title:       x.Title,
-		Body:        x.Body,
-		Description: x.Description,
-		CreatedAt:   x.CreatedAt,
-		UpdatedAt:   x.UpdatedAt,
+		Slug:           x.Slug,
+		Title:          x.Title,
+		Body:           x.Body,
+		Description:    x.Description,
+		CreatedAt:      x.CreatedAt,
+		UpdatedAt:      x.UpdatedAt,
 		FavoritesCount: uint32(fc),
 		Author: &biz.Profile{
 			Username: x.Author.Username,
@@ -108,17 +110,32 @@ func (r *articleRepo) Get(ctx context.Context, slug string) (rv *biz.Article, er
 }
 
 func (r *articleRepo) Create(ctx context.Context, a *biz.Article) (*biz.Article, error) {
+	tags := make([]Tag, 0)
+	for _, x := range a.TagList {
+		tags = append(tags, Tag{
+			Name: x,
+		})
+	}
+	if len(tags) > 0 {
+		err := r.data.db.Clauses(clause.OnConflict{DoNothing: true}).Create(tags).Error
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	po := Article{
 		Slug:        a.Slug,
 		Title:       a.Title,
 		Description: a.Description,
 		Body:        a.Body,
-		Author:      User{Username: a.AuthorUsername},
+		Author:      User{Model:gorm.Model{ID: a.AuthorUserID}},
+		Tags:        tags,
 	}
 	result := r.data.db.Create(&po)
 	if result.Error != nil {
 		return nil, result.Error
 	}
+
 	return convertArticle(po), nil
 }
 
@@ -136,32 +153,40 @@ func (r *articleRepo) Delete(ctx context.Context, slug string) error {
 	return rv.Error
 }
 
-func (r *articleRepo) Favorite(ctx context.Context, currentUsername, slug string) error {
+func (r *articleRepo) Favorite(ctx context.Context, currentUserID uint, slug string) error {
 	af := ArticleFavorite{
-		Username:    currentUsername,
+		UserID:    currentUserID,
 		ArticleSlug: slug,
 	}
 	return r.data.db.Create(&af).Error
 }
 
-func (r *articleRepo) Unfavorite(ctx context.Context, currentUsername, slug string) error {
+func (r *articleRepo) Unfavorite(ctx context.Context, currentUserID uint, slug string) error {
 	po := ArticleFavorite{
-		Username:    currentUsername,
+		UserID:    currentUserID,
 		ArticleSlug: slug,
 	}
 	return r.data.db.Delete(&po).Error
 }
 
-func (r *articleRepo) GetFavoriteStatus(ctx context.Context, currentUsername string, slug string) (favorited bool, err error) {
+func (r *articleRepo) GetFavoritesStatus(ctx context.Context, currentUserID uint, slugs []string) (favorited []bool, err error) {
 	var po ArticleFavorite
 	if result := r.data.db.First(&po); result.Error != nil {
-		return false, nil
+		return nil, nil
 	}
-	return true, nil
+	return nil, nil
+}
+
+func (r *articleRepo) GetFavoritesCounts(ctx context.Context, slugs []string) (count []uint32, err error) {
+	var po ArticleFavorite
+	if result := r.data.db.First(&po); result.Error != nil {
+		return nil, nil
+	}
+	return nil, nil
 }
 
 func (r *articleRepo) ListTags(ctx context.Context) (rv []biz.Tag, err error) {
-	var tags []*Tag
+	var tags []Tag
 	err = r.data.db.Find(&tags).Error
 	if err != nil {
 		return nil, err

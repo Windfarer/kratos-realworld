@@ -2,7 +2,6 @@ package biz
 
 import (
 	"context"
-	"fmt"
 	"kratos-realworld/internal/conf"
 	"kratos-realworld/internal/pkg/middleware/auth"
 
@@ -12,6 +11,7 @@ import (
 )
 
 type User struct {
+	ID           uint
 	Email        string
 	Username     string
 	Bio          string
@@ -27,12 +27,19 @@ type UserLogin struct {
 	Image    string
 }
 
+type UserUpdate struct {
+	Email    string
+	Username string
+	Password string
+	Bio      string
+	Image    string
+}
+
 func hashPassword(pwd string) string {
 	b, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("%v", b)
 	return string(b)
 }
 
@@ -47,13 +54,15 @@ type UserRepo interface {
 	CreateUser(ctx context.Context, user *User) error
 	GetUserByEmail(ctx context.Context, email string) (*User, error)
 	GetUserByUsername(ctx context.Context, username string) (*User, error)
+	GetUserByID(ctx context.Context, id uint) (*User, error)
+	UpdateUser(ctx context.Context, user *User) (*User, error)
 }
 
 type ProfileRepo interface {
 	GetProfile(ctx context.Context, username string) (*Profile, error)
-	FollowUser(ctx context.Context, currentUsername, username string) error
-	UnfollowUser(ctx context.Context, currentUsername, username string) error
-	GetUserFollowingStatus(ctx context.Context, currentUsername, username string) (following bool, err error)
+	FollowUser(ctx context.Context, currentUserID uint, followingID uint) error
+	UnfollowUser(ctx context.Context, currentUserID uint, followingID uint) error
+	GetUserFollowingStatus(ctx context.Context, currentUserID uint, userIDs []uint) (following []bool, err error)
 }
 
 type UserUsecase struct {
@@ -65,6 +74,7 @@ type UserUsecase struct {
 }
 
 type Profile struct {
+	ID        uint
 	Username  string
 	Bio       string
 	Image     string
@@ -76,8 +86,8 @@ func NewUserUsecase(ur UserRepo,
 	return &UserUsecase{ur: ur, pr: pr, jwtc: jwtc, log: log.NewHelper(logger)}
 }
 
-func (uc *UserUsecase) generateToken(username string) string {
-	return auth.GenerateToken(uc.jwtc.Secret, username)
+func (uc *UserUsecase) generateToken(userID uint) string {
+	return auth.GenerateToken(uc.jwtc.Secret, userID)
 }
 
 func (uc *UserUsecase) Register(ctx context.Context, username, email, password string) (*UserLogin, error) {
@@ -92,7 +102,7 @@ func (uc *UserUsecase) Register(ctx context.Context, username, email, password s
 	return &UserLogin{
 		Email:    email,
 		Username: username,
-		Token:    uc.generateToken(username),
+		Token:    uc.generateToken(u.ID),
 	}, nil
 }
 
@@ -113,10 +123,38 @@ func (uc *UserUsecase) Login(ctx context.Context, email, password string) (*User
 		Username: u.Username,
 		Bio:      u.Bio,
 		Image:    u.Image,
-		Token:    uc.generateToken(u.Username),
+		Token:    uc.generateToken(u.ID),
 	}, nil
 }
 
 func (uc *UserUsecase) GetCurrentUser(ctx context.Context) (*User, error) {
-	return nil, nil
+	cu := auth.FromContext(ctx)
+	u, err := uc.ur.GetUserByID(ctx, cu.UserID)
+	if err != nil {
+		return nil, err
+	}
+	return u, nil
+}
+
+func (uc *UserUsecase) UpdateUser(ctx context.Context, uu *UserUpdate) (*UserLogin, error) {
+	cu := auth.FromContext(ctx)
+	u, err := uc.ur.GetUserByID(ctx, cu.UserID)
+	if err != nil {
+		return nil, err
+	}
+	u.Email = uu.Email
+	u.Image = uu.Image
+	u.PasswordHash = hashPassword(uu.Password)
+	u.Bio = uu.Bio
+	u, err = uc.ur.UpdateUser(ctx, u)
+	if err != nil {
+		return nil, err
+	}
+	return &UserLogin{
+		Email:    u.Email,
+		Username: u.Username,
+		Bio:      u.Bio,
+		Image:    u.Image,
+		Token:    uc.generateToken(u.ID),
+	}, nil
 }

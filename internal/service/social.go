@@ -187,8 +187,15 @@ func (s *ConduitService) ListArticles(ctx context.Context, req *v1.ListArticlesR
 }
 
 func (s *ConduitService) GetTags(ctx context.Context, req *v1.GetTagsRequest) (reply *v1.TagListReply, err error) {
-	reply = &v1.TagListReply{}
-
+	rv, err := s.sc.GetTags(ctx)
+	if err != nil {
+		return nil, err
+	}
+	tags := make([]string, len(rv))
+	for i, x := range rv {
+		tags[i] = string(x)
+	}
+	reply = &v1.TagListReply{Tags: tags}
 	return reply, nil
 }
 

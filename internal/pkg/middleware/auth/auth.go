@@ -15,12 +15,12 @@ import (
 var currentUserKey struct{}
 
 type CurrentUser struct {
-	Username string
+	UserID uint
 }
 
-func GenerateToken(secret, username string) string {
+func GenerateToken(secret string, userid uint) string {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"username": username,
+		"userid": userid,
 		"nbf":      time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
 	})
 
@@ -55,8 +55,8 @@ func JWTAuth(secret string) middleware.Middleware {
 				}
 
 				if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-					if u, ok := claims["username"]; ok {
-						ctx = WithContext(ctx, &CurrentUser{Username: u.(string)})
+					if u, ok := claims["userid"]; ok {
+						ctx = WithContext(ctx, &CurrentUser{UserID: uint(u.(float64))})
 					}
 					// put CurrentUser into ctx
 

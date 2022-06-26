@@ -4,7 +4,7 @@ import (
 	"context"
 
 	v1 "kratos-realworld/api/conduit/v1"
-
+	"kratos-realworld/internal/biz"
 )
 
 func (s *ConduitService) Login(ctx context.Context, req *v1.LoginRequest) (reply *v1.UserReply, err error) {
@@ -15,7 +15,7 @@ func (s *ConduitService) Login(ctx context.Context, req *v1.LoginRequest) (reply
 	return &v1.UserReply{
 		User: &v1.UserReply_User{
 			Username: rv.Username,
-			Token: rv.Token,
+			Token:    rv.Token,
 		},
 	}, nil
 }
@@ -35,18 +35,36 @@ func (s *ConduitService) Register(ctx context.Context, req *v1.RegisterRequest) 
 }
 
 func (s *ConduitService) GetCurrentUser(ctx context.Context, req *v1.GetCurrentUserRequest) (reply *v1.UserReply, err error) {
-
+	u, err := s.uc.GetCurrentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
 	return &v1.UserReply{
 		User: &v1.UserReply_User{
-			Username: "boom",
+			Username: u.Username,
+			Image:    u.Image,
+			Bio:      u.Bio,
 		},
 	}, nil
 }
 
 func (s *ConduitService) UpdateUser(ctx context.Context, req *v1.UpdateUserRequest) (reply *v1.UserReply, err error) {
+	u, err := s.uc.UpdateUser(ctx, &biz.UserUpdate{
+		Email:    req.Email,
+		Username: req.Username,
+		Password: req.Password,
+		Bio:      req.Bio,
+		Image:    req.Image,
+	})
+	if err != nil {
+		return nil, err
+	}
 	return &v1.UserReply{
 		User: &v1.UserReply_User{
-			Username: "boom",
+			Username: u.Username,
+			Email:    u.Email,
+			Image:    u.Image,
+			Bio:      u.Bio,
 		},
 	}, nil
 }
