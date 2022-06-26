@@ -86,7 +86,7 @@ func (r *articleRepo) List(ctx context.Context, opts ...biz.ListOption) (rv []*b
 
 func (r *articleRepo) Get(ctx context.Context, slug string) (rv *biz.Article, err error) {
 	x := new(Article)
-	err = r.data.db.Where("slug = ?", slug).First(&x).Error
+	err = r.data.db.Where("slug = ?", slug).Preload("Author").First(&x).Error
 	if err != nil {
 		return nil, err
 	}

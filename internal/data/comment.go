@@ -40,6 +40,7 @@ func (r *commentRepo) Create(ctx context.Context, in *biz.Comment) (rv *biz.Comm
 		return nil, result.Error
 	}
 	return &biz.Comment{
+		ID: c.ID,
 		Article: &biz.Article{},
 		Body:    c.Body,
 		Author: &biz.Profile{
@@ -52,13 +53,14 @@ func (r *commentRepo) Create(ctx context.Context, in *biz.Comment) (rv *biz.Comm
 
 func (r *commentRepo) List(ctx context.Context, slug string) (rv []*biz.Comment, err error) {
 	var comments []Comment
-	result := r.data.db.Where("article_slug = ?", slug).Find(&comments)
+	result := r.data.db.Where("article_slug = ?", slug).Preload("Author").Find(&comments)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	rv = make([]*biz.Comment, len(comments))
 	for i, x := range comments {
 		rv[i] = &biz.Comment{
+			ID: x.ID,
 			Article: nil, // fixme
 			Body:    x.Body,
 			Author: &biz.Profile{

@@ -65,7 +65,6 @@ type Comment struct {
 	UpdatedAt time.Time
 
 	ArticleID    uint
-	AuthorUserID uint
 
 	Article  *Article
 	AuthorID uint
@@ -162,7 +161,7 @@ func (uc *SocialUsecase) DeleteArticle(ctx context.Context, slug string) (err er
 
 func (uc *SocialUsecase) AddComment(ctx context.Context, slug string, in *Comment) (rv *Comment, err error) {
 	u := auth.FromContext(ctx)
-	in.AuthorUserID = u.UserID
+	in.AuthorID = u.UserID
 	in.Article = &Article{Slug: slug}
 	return uc.cr.Create(ctx, in)
 }
