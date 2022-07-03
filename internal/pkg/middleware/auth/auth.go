@@ -21,7 +21,7 @@ type CurrentUser struct {
 func GenerateToken(secret string, userid uint) string {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"userid": userid,
-		"nbf":      time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
+		"nbf":    time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
 	})
 
 	// Sign and get the complete encoded token as a string using the secret
@@ -55,11 +55,10 @@ func JWTAuth(secret string) middleware.Middleware {
 				}
 
 				if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+					// put CurrentUser into ctx
 					if u, ok := claims["userid"]; ok {
 						ctx = WithContext(ctx, &CurrentUser{UserID: uint(u.(float64))})
 					}
-					// put CurrentUser into ctx
-
 				} else {
 					return nil, errors.New("Token Invalid")
 				}

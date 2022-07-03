@@ -17,12 +17,11 @@ type ArticleRepo interface {
 	Get(ctx context.Context, slug string) (*Article, error)
 	Create(ctx context.Context, a *Article) (*Article, error)
 	Update(ctx context.Context, a *Article) (*Article, error)
-	Delete(ctx context.Context, slug string) error
+	Delete(ctx context.Context, a *Article) error
 
-	Favorite(ctx context.Context, currentUserID uint, slug string) error
-	Unfavorite(ctx context.Context, currentUserID uint, slug string) error
-	GetFavoritesStatus(ctx context.Context, currentUserID uint, slugs []string) (favorited []bool, err error)
-	GetFavoritesCounts(ctx context.Context, slugs []string) (count []uint32, err error)
+	Favorite(ctx context.Context, currentUserID uint, aid uint) error
+	Unfavorite(ctx context.Context, currentUserID uint, aid uint) error
+	GetFavoritesStatus(ctx context.Context, currentUserID uint, as []*Article) (favorited []bool, err error)
 
 	ListTags(ctx context.Context) ([]Tag, error)
 }
@@ -43,6 +42,7 @@ type SocialUsecase struct {
 }
 
 type Article struct {
+	ID  uint
 	Slug           string
 	Title          string
 	Description    string
@@ -156,7 +156,7 @@ func (uc *SocialUsecase) DeleteArticle(ctx context.Context, slug string) (err er
 	if !a.verifyAuthor(auth.FromContext(ctx).UserID) {
 		return errors.New("no permission 401")
 	}
-	return uc.ar.Delete(ctx, a.Slug)
+	return uc.ar.Delete(ctx, a)
 }
 
 func (uc *SocialUsecase) AddComment(ctx context.Context, slug string, in *Comment) (rv *Comment, err error) {
@@ -184,12 +184,18 @@ func (uc *SocialUsecase) DeleteComment(ctx context.Context, id uint) (err error)
 
 func (uc *SocialUsecase) FeedArticles(ctx context.Context, opts ...ListOption) (rv []*Article, err error) {
 	rv, err = uc.ar.List(ctx, opts...)
-	return rv, err
+	if err != nil {
+		return nil, err
+	}
+	return rv, nil
 }
 
 func (uc *SocialUsecase) ListArticles(ctx context.Context, opts ...ListOption) (rv []*Article, err error) {
 	rv, err = uc.ar.List(ctx, opts...)
-	return rv, err
+	if err != nil {
+		return nil, err
+	}
+	return rv, nil
 }
 
 func (uc *SocialUsecase) UpdateArticle(ctx context.Context, in *Article) (rv *Article, err error) {
@@ -214,7 +220,7 @@ func (uc *SocialUsecase) FavoriteArticle(ctx context.Context, slug string) (rv *
 		return nil, err
 	}
 	cu := auth.FromContext(ctx)
-	err = uc.ar.Favorite(ctx, cu.UserID, a.Slug)
+	err = uc.ar.Favorite(ctx, cu.UserID, a.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -227,7 +233,7 @@ func (uc *SocialUsecase) UnfavoriteArticle(ctx context.Context, slug string) (rv
 		return nil, err
 	}
 	cu := auth.FromContext(ctx)
-	err = uc.ar.Unfavorite(ctx, cu.UserID, a.Slug)
+	err = uc.ar.Unfavorite(ctx, cu.UserID, a.ID)
 	if err != nil {
 		return nil, err
 	}

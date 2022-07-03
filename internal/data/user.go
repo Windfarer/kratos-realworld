@@ -29,6 +29,7 @@ type User struct {
 	Bio          string `gorm:"size:1000"`
 	Image        string `gorm:"size:1000"`
 	PasswordHash string `gorm:"size:500"`
+	Following    uint32
 }
 
 func NewUserRepo(data *Data, logger log.Logger) biz.UserRepo {
@@ -75,7 +76,7 @@ func (r *userRepo) UpdateUser(ctx context.Context, in *biz.User) (rv *biz.User, 
 		Image:        in.Image,
 	}).Error
 	return &biz.User{
-		ID: u.ID,
+		ID:           u.ID,
 		Email:        u.Email,
 		Username:     u.Username,
 		Bio:          u.Bio,
@@ -94,7 +95,7 @@ func (r *userRepo) GetUserByEmail(ctx context.Context, email string) (rv *biz.Us
 		return nil, err
 	}
 	return &biz.User{
-		ID: u.ID,
+		ID:           u.ID,
 		Email:        u.Email,
 		Username:     u.Username,
 		Bio:          u.Bio,
@@ -126,7 +127,7 @@ func (r *userRepo) GetUserByUsername(ctx context.Context, username string) (rv *
 		return nil, err
 	}
 	return &biz.User{
-		ID: u.ID,
+		ID:           u.ID,
 		Email:        u.Email,
 		Username:     u.Username,
 		Bio:          u.Bio,
@@ -142,7 +143,7 @@ func (r *profileRepo) GetProfile(ctx context.Context, username string) (rv *biz.
 		return nil, err
 	}
 	return &biz.Profile{
-		ID: u.ID,
+		ID:        u.ID,
 		Username:  u.Username,
 		Bio:       u.Bio,
 		Image:     u.Image,

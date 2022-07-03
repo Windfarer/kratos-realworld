@@ -4,7 +4,6 @@ import (
 	"context"
 	"kratos-realworld/internal/biz"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -12,13 +11,14 @@ import (
 
 type Article struct {
 	gorm.Model
-	Slug        string `gorm:"size:200"`
-	Title       string `gorm:"size:200"`
-	Description string `gorm:"size:200"`
-	Body        string
-	Tags        []Tag `gorm:"many2many:article_tags;"`
-	AuthorID    uint
-	Author      User
+	Slug          string `gorm:"size:200"`
+	Title         string `gorm:"size:200"`
+	Description   string `gorm:"size:200"`
+	Body          string
+	Tags          []Tag `gorm:"many2many:article_tags;"`
+	AuthorID      uint
+	Author        User
+	FavoritesCount uint32 
 }
 
 type Tag struct {
@@ -38,7 +38,7 @@ type Following struct {
 type ArticleFavorite struct {
 	gorm.Model
 	UserID    uint
-	ArticleSlug string
+	ArticleID uint
 }
 
 type articleRepo struct {
@@ -48,13 +48,16 @@ type articleRepo struct {
 
 func convertArticle(x Article) *biz.Article {
 	return &biz.Article{
+		ID:          x.ID,
 		Slug:        x.Slug,
 		Title:       x.Title,
 		Description: x.Description,
 		Body:        x.Body,
 		CreatedAt:   x.CreatedAt,
 		UpdatedAt:   x.UpdatedAt,
+		FavoritesCount: x.FavoritesCount,
 		Author: &biz.Profile{
+			ID:       x.Author.ID,
 			Username: x.Author.Username,
 			Bio:      x.Author.Bio,
 			Image:    x.Author.Image,
@@ -70,13 +73,11 @@ func NewArticleRepo(data *Data, logger log.Logger) biz.ArticleRepo {
 }
 
 func (r *articleRepo) List(ctx context.Context, opts ...biz.ListOption) (rv []*biz.Article, err error) {
-
 	var articles []Article
 	result := r.data.db.Preload("Author").Find(&articles)
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	spew.Dump(articles)
 	rv = make([]*biz.Article, len(articles))
 	for i, x := range articles {
 		rv[i] = convertArticle(x)
@@ -85,28 +86,16 @@ func (r *articleRepo) List(ctx context.Context, opts ...biz.ListOption) (rv []*b
 }
 
 func (r *articleRepo) Get(ctx context.Context, slug string) (rv *biz.Article, err error) {
-	x := new(Article)
+	x := Article{}
 	err = r.data.db.Where("slug = ?", slug).Preload("Author").First(&x).Error
 	if err != nil {
 		return nil, err
 	}
 	var fc int64
-	err = r.data.db.Where("article_slug = ?", slug).Count(&fc).Error
-
-	return &biz.Article{
-		Slug:           x.Slug,
-		Title:          x.Title,
-		Body:           x.Body,
-		Description:    x.Description,
-		CreatedAt:      x.CreatedAt,
-		UpdatedAt:      x.UpdatedAt,
-		FavoritesCount: uint32(fc),
-		Author: &biz.Profile{
-			Username: x.Author.Username,
-			Bio:      x.Author.Bio,
-			Image:    x.Author.Image,
-		},
-	}, nil
+	rv = convertArticle(x)
+	err = r.data.db.Where("article_id = ?", x.ID).Count(&fc).Error
+	rv.FavoritesCount = uint32(fc)
+	return rv, nil
 }
 
 func (r *articleRepo) Create(ctx context.Context, a *biz.Article) (*biz.Article, error) {
@@ -128,7 +117,7 @@ func (r *articleRepo) Create(ctx context.Context, a *biz.Article) (*biz.Article,
 		Title:       a.Title,
 		Description: a.Description,
 		Body:        a.Body,
-		Author:      User{Model:gorm.Model{ID: a.AuthorUserID}},
+		Author:      User{Model: gorm.Model{ID: a.AuthorUserID}},
 		Tags:        tags,
 	}
 	result := r.data.db.Create(&po)
@@ -148,36 +137,48 @@ func (r *articleRepo) Update(ctx context.Context, a *biz.Article) (*biz.Article,
 	return convertArticle(po), err
 }
 
-func (r *articleRepo) Delete(ctx context.Context, slug string) error {
-	rv := r.data.db.Delete(&Article{}, slug)
+func (r *articleRepo) Delete(ctx context.Context, a *biz.Article) error {
+	rv := r.data.db.Delete(&Article{}, a.ID)
 	return rv.Error
 }
 
-func (r *articleRepo) Favorite(ctx context.Context, currentUserID uint, slug string) error {
+func (r *articleRepo) Favorite(ctx context.Context, currentUserID uint, aid uint) error {
 	af := ArticleFavorite{
 		UserID:    currentUserID,
-		ArticleSlug: slug,
+		ArticleID: aid,
 	}
-	return r.data.db.Create(&af).Error
+	err := r.data.db.Create(&af).Error
+	if err != nil {
+		return err
+	}
+	var a Article
+	if err := r.data.db.First(&a).Error; err != nil {
+		return err
+	}
+
+	err = r.data.db.Model(&a).UpdateColumn("favorites_count", a.FavoritesCount+1).Error
+	return err
 }
 
-func (r *articleRepo) Unfavorite(ctx context.Context, currentUserID uint, slug string) error {
+func (r *articleRepo) Unfavorite(ctx context.Context, currentUserID uint, aid uint) error {
 	po := ArticleFavorite{
 		UserID:    currentUserID,
-		ArticleSlug: slug,
+		ArticleID: aid,
 	}
-	return r.data.db.Delete(&po).Error
+	err := r.data.db.Delete(&po).Error
+	if err != nil {
+		return err
+	}
+	var a Article
+	if err := r.data.db.First(&a).Error; err != nil {
+		return err
+	}
+
+	err = r.data.db.Model(&a).UpdateColumn("favorites_count", a.FavoritesCount-1).Error
+	return err
 }
 
-func (r *articleRepo) GetFavoritesStatus(ctx context.Context, currentUserID uint, slugs []string) (favorited []bool, err error) {
-	var po ArticleFavorite
-	if result := r.data.db.First(&po); result.Error != nil {
-		return nil, nil
-	}
-	return nil, nil
-}
-
-func (r *articleRepo) GetFavoritesCounts(ctx context.Context, slugs []string) (count []uint32, err error) {
+func (r *articleRepo) GetFavoritesStatus(ctx context.Context, currentUserID uint, aa []*biz.Article) (favorited []bool, err error) {
 	var po ArticleFavorite
 	if result := r.data.db.First(&po); result.Error != nil {
 		return nil, nil

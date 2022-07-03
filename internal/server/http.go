@@ -48,7 +48,7 @@ func NewHTTPServer(c *conf.Server, jwtc *conf.JWT, s *service.ConduitService, lo
 		http.Filter(
 			handlers.CORS(
 				handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}),
-				handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}),
+				handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS", "DELETE"}),
 				handlers.AllowedOrigins([]string{"*"}),
 			),
 		),
