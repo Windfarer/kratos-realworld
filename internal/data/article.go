@@ -11,14 +11,14 @@ import (
 
 type Article struct {
 	gorm.Model
-	Slug          string `gorm:"size:200"`
-	Title         string `gorm:"size:200"`
-	Description   string `gorm:"size:200"`
-	Body          string
-	Tags          []Tag `gorm:"many2many:article_tags;"`
-	AuthorID      uint
-	Author        User
-	FavoritesCount uint32 
+	Slug           string `gorm:"size:200"`
+	Title          string `gorm:"size:200"`
+	Description    string `gorm:"size:200"`
+	Body           string
+	Tags           []Tag `gorm:"many2many:article_tags;"`
+	AuthorID       uint
+	Author         User
+	FavoritesCount uint32
 }
 
 type Tag struct {
@@ -48,13 +48,13 @@ type articleRepo struct {
 
 func convertArticle(x Article) *biz.Article {
 	return &biz.Article{
-		ID:          x.ID,
-		Slug:        x.Slug,
-		Title:       x.Title,
-		Description: x.Description,
-		Body:        x.Body,
-		CreatedAt:   x.CreatedAt,
-		UpdatedAt:   x.UpdatedAt,
+		ID:             x.ID,
+		Slug:           x.Slug,
+		Title:          x.Title,
+		Description:    x.Description,
+		Body:           x.Body,
+		CreatedAt:      x.CreatedAt,
+		UpdatedAt:      x.UpdatedAt,
 		FavoritesCount: x.FavoritesCount,
 		Author: &biz.Profile{
 			ID:       x.Author.ID,
@@ -93,7 +93,7 @@ func (r *articleRepo) Get(ctx context.Context, slug string) (rv *biz.Article, er
 	}
 	var fc int64
 	rv = convertArticle(x)
-	err = r.data.db.Where("article_id = ?", x.ID).Count(&fc).Error
+	err = r.data.db.Model(&ArticleFavorite{}).Where("article_id = ?", x.ID).Count(&fc).Error
 	rv.FavoritesCount = uint32(fc)
 	return rv, nil
 }
@@ -147,16 +147,26 @@ func (r *articleRepo) Favorite(ctx context.Context, currentUserID uint, aid uint
 		UserID:    currentUserID,
 		ArticleID: aid,
 	}
-	err := r.data.db.Create(&af).Error
-	if err != nil {
-		return err
-	}
+
 	var a Article
 	if err := r.data.db.First(&a).Error; err != nil {
 		return err
 	}
 
-	err = r.data.db.Model(&a).UpdateColumn("favorites_count", a.FavoritesCount+1).Error
+	if result := r.data.db.First(&ArticleFavorite{UserID: currentUserID, ArticleID: aid}); result.RowsAffected == 0 {
+		err := r.data.db.Create(&af).Error
+		if err != nil {
+			return err
+		}
+		a.FavoritesCount += 1
+	} else {
+		if err := r.data.db.Where(&ArticleFavorite{UserID: currentUserID, ArticleID: aid}).Delete(&ArticleFavorite{}).Error; err != nil {
+			return err
+		}
+		a.FavoritesCount -= 1
+	}
+
+	err := r.data.db.Model(&a).UpdateColumn("favorites_count", a.FavoritesCount).Error
 	return err
 }
 
@@ -196,5 +206,18 @@ func (r *articleRepo) ListTags(ctx context.Context) (rv []biz.Tag, err error) {
 	for i, x := range tags {
 		rv[i] = biz.Tag(x.Name)
 	}
+	return rv, nil
+}
+
+func (r *articleRepo) GetArticle(ctx context.Context, aid uint) (rv *biz.Article, err error) {
+	x := Article{}
+	err = r.data.db.Where("id = ?", aid).Preload("Author").First(&x).Error
+	if err != nil {
+		return nil, err
+	}
+	var fc int64
+	rv = convertArticle(x)
+	err = r.data.db.Model(&ArticleFavorite{}).Where("article_id = ?", x.ID).Count(&fc).Error
+	rv.FavoritesCount = uint32(fc)
 	return rv, nil
 }
