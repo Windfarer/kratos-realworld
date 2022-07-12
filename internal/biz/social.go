@@ -18,6 +18,7 @@ type ArticleRepo interface {
 	Create(ctx context.Context, a *Article) (*Article, error)
 	Update(ctx context.Context, a *Article) (*Article, error)
 	Delete(ctx context.Context, a *Article) error
+	GetArticle(ctx context.Context, aid uint) (*Article, error)
 
 	Favorite(ctx context.Context, currentUserID uint, aid uint) error
 	Unfavorite(ctx context.Context, currentUserID uint, aid uint) error
@@ -42,7 +43,7 @@ type SocialUsecase struct {
 }
 
 type Article struct {
-	ID  uint
+	ID             uint
 	Slug           string
 	Title          string
 	Description    string
@@ -64,7 +65,7 @@ type Comment struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 
-	ArticleID    uint
+	ArticleID uint
 
 	Article  *Article
 	AuthorID uint
@@ -100,7 +101,7 @@ func (uc *SocialUsecase) GetProfile(ctx context.Context, username string) (rv *P
 
 func (uc *SocialUsecase) FollowUser(ctx context.Context, username string) (rv *Profile, err error) {
 	cu := auth.FromContext(ctx)
-	
+
 	fu, err := uc.pr.GetProfile(ctx, username)
 	if err != nil {
 		return nil, err
@@ -221,6 +222,10 @@ func (uc *SocialUsecase) FavoriteArticle(ctx context.Context, slug string) (rv *
 	}
 	cu := auth.FromContext(ctx)
 	err = uc.ar.Favorite(ctx, cu.UserID, a.ID)
+	if err != nil {
+		return nil, err
+	}
+	a, err = uc.ar.GetArticle(ctx, a.ID)
 	if err != nil {
 		return nil, err
 	}
