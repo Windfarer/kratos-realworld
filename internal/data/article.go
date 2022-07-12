@@ -149,11 +149,11 @@ func (r *articleRepo) Favorite(ctx context.Context, currentUserID uint, aid uint
 	}
 
 	var a Article
-	if err := r.data.db.First(&a).Error; err != nil {
+	if err := r.data.db.Where("id = ?", aid).First(&a).Error; err != nil {
 		return err
 	}
 
-	if result := r.data.db.First(&ArticleFavorite{UserID: currentUserID, ArticleID: aid}); result.RowsAffected == 0 {
+	if result := r.data.db.Where(&ArticleFavorite{UserID: currentUserID, ArticleID: aid}).First(&ArticleFavorite{}); result.RowsAffected == 0 {
 		err := r.data.db.Create(&af).Error
 		if err != nil {
 			return err
