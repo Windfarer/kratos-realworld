@@ -50,11 +50,11 @@ func (s *ConduitService) GetCurrentUser(ctx context.Context, req *v1.GetCurrentU
 
 func (s *ConduitService) UpdateUser(ctx context.Context, req *v1.UpdateUserRequest) (reply *v1.UserReply, err error) {
 	u, err := s.uc.UpdateUser(ctx, &biz.UserUpdate{
-		Email:    req.Email,
-		Username: req.Username,
-		Password: req.Password,
-		Bio:      req.Bio,
-		Image:    req.Image,
+		Email:    req.User.GetEmail(),
+		Username: req.User.GetUsername(),
+		Password: req.User.GetPassword(),
+		Bio:      req.User.GetBio(),
+		Image:    req.User.GetImage(),
 	})
 	if err != nil {
 		return nil, err

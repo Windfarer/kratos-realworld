@@ -196,11 +196,14 @@ message GetProfileRequest { string username = 1; }
 message GetCurrentUserRequest {}
 
 message UpdateUserRequest {
-  string email = 1;
-  string password = 2;
-  string username = 3;
-  string bio = 4;
-  string image = 5;
+  message User {
+    string email = 1;
+    string password = 2;
+    string username = 3;
+    string bio = 4;
+    string image = 5;
+  }
+  User user = 1;
 }
 
 message UserReply {
